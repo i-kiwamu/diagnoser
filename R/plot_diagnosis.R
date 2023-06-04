@@ -1,6 +1,6 @@
 #' Conversion from P-value to expression
 #' @param p P-value
-#' @return a vector of expression.
+#' @return a vector of character of expression.
 #' @examples
 #' p <- c(1e-05, 0.002, 0.03, 0.4)
 #' p2lt(p)
@@ -15,7 +15,7 @@ p2lt <- function(p)
 
 #' Conversion from P-value to stars
 #' @param p P-value
-#' @return a vector of character
+#' @return a vector of character of asterisks or ns
 #' @examples
 #' p <- c(1e-05, 0.002, 0.03, 0.4)
 #' p2star(p)
