@@ -42,24 +42,23 @@ p2star <- function(p)
 plot_diagnosis <- function(model, ...) UseMethod("plot_diagnosis")
 
 
-#' Diagnosis plot fo lmerMod object
+#' Diagnosis plot fo lm object
 #' @importFrom stats cooks.distance fitted resid
 #' @importFrom tibble tibble
 #' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
 #' @importFrom cowplot plot_grid
-#' @param model lmerMod object
-#' @inheritDotParams lme4::lmer
+#' @param model lm object
+#' @param ... Not to be used.
 #' @note It produces four plots: Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance.
 #' @examples
-#' library(lme4)
-#' fit <- lmer(circumference ~ age + (1|Tree), Orange)
+#' fit <- lm(weight ~ height, women)
 #' plot_diagnosis(fit)
 #' @export
-plot_diagnosis.lmerMod <- function(model, ...) {
+plot_diagnosis.lm <- function(model, ...) {
   df <- tibble(
     fitted = fitted(model),
     resid = resid(model, type = "pearson"),
-    resid_std = sqrt(abs(resid(model, type = "pearson", scaled = TRUE))),
+    resid_std = sqrt(abs(resid(model, type = "pearson"))),
     cooks = cooks.distance(model))
   p1 <- ggplot(df, aes(fitted, resid)) +
     geom_smooth(method = "loess", colour = "blue", se = FALSE) +
@@ -77,6 +76,92 @@ plot_diagnosis.lmerMod <- function(model, ...) {
     labs(title = "Scale-Location",
          x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
   p4 <- ggplot(df, aes(1:nrow(df), cooks)) +
+    geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
+    geom_point() +
+    labs(title = "Cook's distance",
+         x = "Index", y = "Cook's distance")
+  plot_grid(
+    p1, p2, p3, p4,
+    align = "hv", nrow = 2, ncol = 2)
+}
+
+
+#' Diagnosis plot fo lme object
+#' @importFrom HLMdiag hlm_augment hlm_resid
+#' @importFrom dplyr mutate
+#' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
+#' @importFrom cowplot plot_grid
+#' @param model lme object
+#' @param ... Not to be used.
+#' @note four plots of Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance
+#' @keywords function
+#' @author ISHIKURA Kiwamu
+#' @examples
+#' library(nlme)
+#' fit <- lme(circumference ~ age, random = ~ 1|Tree, Orange)
+#' plot_diagnosis(fit)
+#' @export
+plot_diagnosis.lme <- function(model, ...) {
+  df <- hlm_augment(model) |>
+    mutate(.std.resid = hlm_resid(model, standardize = TRUE)$.std.resid)
+  p1 <- ggplot(df, aes(.fitted, .resid)) +
+    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
+    geom_point() +
+    labs(title = "Residual vs Fitted",
+         x = "Fitted values", y = "Residuals")
+  p2 <- ggplot(df, aes(sample = .std.resid)) +
+    stat_qq_line(colour = "gray", linetype = "dashed") +
+    stat_qq() +
+    labs(title = "Normal QQ",
+         x = "Theoretical quantities", y = "Standardized residuals")
+  p3 <- ggplot(df, aes(.fitted, .std.resid)) +
+    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
+    geom_point() +
+    labs(title = "Scale-Location",
+         x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
+  p4 <- ggplot(df, aes(1:nrow(df), cooksd)) +
+    geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
+    geom_point() +
+    labs(title = "Cook's distance",
+         x = "Index", y = "Cook's distance")
+  plot_grid(
+    p1, p2, p3, p4,
+    align = "hv", nrow = 2, ncol = 2)
+}
+
+
+
+#' Diagnosis plot fo lmerMod object
+#' @importFrom HLMdiag hlm_augment
+#' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
+#' @importFrom cowplot plot_grid
+#' @param model lmerMod object
+#' @param ... Not to be used.
+#' @note It produces four plots: Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance.
+#' @examples
+#' library(lme4)
+#' fit <- lmer(circumference ~ age + (1|Tree), Orange)
+#' plot_diagnosis(fit)
+#' @export
+plot_diagnosis.lmerMod <- function(model, ...) {
+  df <- hlm_augment(model) |>
+    mutate(.std.resid = hlm_resid(model, standardize = TRUE)$.std.resid)
+  p1 <- ggplot(df, aes(.fitted, .resid)) +
+    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
+    geom_point() +
+    labs(title = "Residual vs Fitted",
+         x = "Fitted values", y = "Residuals")
+  p2 <- ggplot(df, aes(sample = .std.resid)) +
+    stat_qq_line(colour = "gray", linetype = "dashed") +
+    stat_qq() +
+    labs(title = "Normal QQ",
+         x = "Theoretical quantities", y = "Standardized residuals")
+  p3 <- ggplot(df, aes(.fitted, .std.resid)) +
+    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
+    geom_point() +
+    labs(title = "Scale-Location",
+         x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
+  p4 <- ggplot(df, aes(1:nrow(df), cooksd)) +
     geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
     geom_point() +
     labs(title = "Cook's distance",

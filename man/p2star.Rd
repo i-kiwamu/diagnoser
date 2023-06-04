@@ -10,7 +10,7 @@ p2star(p)
 \item{p}{P-value}
 }
 \value{
-a vector of character
+a vector of character of asterisks or ns
 }
 \description{
 Conversion from P-value to stars

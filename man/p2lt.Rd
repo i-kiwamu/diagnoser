@@ -10,7 +10,7 @@ p2lt(p)
 \item{p}{P-value}
 }
 \value{
-a vector of expression.
+a vector of character of expression.
 }
 \description{
 Conversion from P-value to expression
