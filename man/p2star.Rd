@@ -9,6 +9,9 @@ p2star(p)
 \arguments{
 \item{p}{P-value}
 }
+\value{
+a vector of character
+}
 \description{
 Conversion from P-value to stars
 }

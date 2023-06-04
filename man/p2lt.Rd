@@ -9,6 +9,9 @@ p2lt(p)
 \arguments{
 \item{p}{P-value}
 }
+\value{
+a vector of expression.
+}
 \description{
 Conversion from P-value to expression
 }
