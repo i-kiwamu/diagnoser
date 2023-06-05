@@ -20,7 +20,3 @@ This is a generic function to make the diagnosis plot of the model.
 \seealso{
 \code{\link{plot}}
 }
-\author{
-ISHIKURA Kiwamu
-}
-\keyword{function}

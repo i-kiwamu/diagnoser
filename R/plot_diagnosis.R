@@ -35,8 +35,6 @@ p2star <- function(p)
 #' @param model model object
 #' @param ... additional arguments
 #' @note This is a generic function to make the diagnosis plot of the model.
-#' @keywords function
-#' @author ISHIKURA Kiwamu
 #' @export
 #' @seealso \code{\link{plot}}
 plot_diagnosis <- function(model, ...) UseMethod("plot_diagnosis")
