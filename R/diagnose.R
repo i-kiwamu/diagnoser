@@ -38,8 +38,8 @@ diagnose.lm <- function(model) {
   id_influential <- which(influence$cooksd > 1)
   
   # Return
-  result <- list(
-    data = influence,
+  result <- new_tibble_diagnoser(
+    influence,
     ks_test = ks_test,
     levene_test = levene_test,
     id_influential = id_influential
