@@ -25,21 +25,8 @@ diagnose.lm <- function(model) {
     rename(cooksd = .cooksd,
            leverage.overall = .hat) |>
     mutate(.std.resid_abs_sqrt = sqrt(abs(.std.resid)))
-  
-  # 1. Normality of errors
-  ks_test <- 
-    with(influence, ks.test(.std.resid, "pnorm", 0, 1))
-  
-  # 2. Homogeneity of variance
-  levene_test <- leveneTest(model)
-  
-  # Return
-  result <- new_tibble_diagnoser(
-    influence,
-    ks_test = ks_test,
-    levene_test = levene_test
-  )
-  return(result)
+
+  return(new_tibble_diag(influence, model))
 }
 
 
@@ -53,4 +40,6 @@ diagnose.lme <- function(model) {
   influence <- hlm_augment(model, include.ls = FALSE) |>
     mutate(.std.resid = resid(model, type = "pearson"),
            .std.resid_abs_sqrt = sqrt(abs(.std.resid)))
+
+  return(new_tibble_diag(influence, model))
 }
