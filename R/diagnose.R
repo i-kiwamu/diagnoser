@@ -28,21 +28,16 @@ diagnose.lm <- function(model) {
   
   # 1. Normality of errors
   ks_test <- 
-    with(influence,
-         ks.test(.std.resid, "pnorm", mean(.std.resid), sd(.std.resid)))
+    with(influence, ks.test(.std.resid, "pnorm", 0, 1))
   
   # 2. Homogeneity of variance
   levene_test <- leveneTest(model)
-  
-  # 3. Possible influential data
-  id_influential <- which(influence$cooksd > 1)
   
   # Return
   result <- new_tibble_diagnoser(
     influence,
     ks_test = ks_test,
-    levene_test = levene_test,
-    id_influential = id_influential
+    levene_test = levene_test
   )
   return(result)
 }
