@@ -27,6 +27,41 @@ p2star <- function(p)
                        ifelse(p < 0.05, "*", "ns"))))
 
 
+#' GeomPointLoess
+#' @importFrom ggplot2 ggproto Geom GeomPoint GeomSmooth
+#' @importFrom grid gList
+#' @export
+GeomPointLoess <- 
+  ggproto("GeomPointLoess", Geom,
+          required_aes = c("x", "y"),
+          default_aes = aes(colour = "black", size = 2, shape = 19,
+                            linetype = 1, linewidth = 0.5,
+                            fill = NA, alpha = NA, stroke = 1),
+          draw_panel = function(data, panel_params, coord, ...) {
+            gList(GeomPoint$draw_panel(data, panel_params_point, coord, ...),
+                  GeomSmooth$draw_panel(data, panel_params_smooth, coord, ...))
+          })
+
+#' geom_diag_resid_fitted
+#' @importFrom ggplot2 layer aes GeomPoint
+#' @importFrom rlang list2
+#' @importFrom cli cli_alert_warning
+#' @inheritParams ggplot2::geom_point
+#' @export
+geom_diag_resid_fitted <-
+  function(mapping = NULL, data = NULL,
+           stat = "identity", position = "identity",
+           ..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
+    if (!is.null(mapping)) {
+      cli_alert_warning("aes() is specified, but ignored...")
+    }
+    layer(data = data, mapping = aes(x = .fitted, y = .resid),
+          geom = GeomPointLoess, stat = stat, position = position,
+          show.legend = show.legend, inherit.aes = inherit.aes,
+          params = list2(na.rm = na.rm, ...))
+}
+
+
 
 
 # plot_diagnosis ==============================================================

@@ -10,12 +10,29 @@ diagnose.default <- function(model, ...)
              paste(class(model), collapse = ", ")))
 
 
+#' Diagnose a aov model
+#' @importFrom broom augment
+#' @importFrom tibble rowid_to_column
+#' @importFrom dplyr mutate rename
+#' @param model aov object
+#' @note To diagnose the aov model
+#' @export
+diagnose.aov <- function(model) {
+  model_lm <- lm(model)
+  influence <- augment(model_lm) |>
+    rowid_to_column("id") |>
+    rename(cooksd = .cooksd,
+           leverage.overall = .hat) |>
+    mutate(.std.resid_abs_sqrt = sqrt(abs(.std.resid)))
+  
+  return(new_tibble_diag(influence, model))
+}
+
+
 #' Diagnose a lm model
 #' @importFrom broom augment
 #' @importFrom tibble rowid_to_column
 #' @importFrom dplyr mutate rename
-#' @importFrom stats ks.test
-#' @importFrom car leveneTest
 #' @param model lm object
 #' @note To diagnose the lm model
 #' @export
