@@ -33,7 +33,9 @@ p2star <- function(p)
 #' @importFrom glue glue
 #' @export
 autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
-  if(is.element(type, c("rf", "resid-fitted"))) {
+  if(is.element(type, c("mf", "measured-fitted"))) {
+    plot_measured_fitted(object, ...)
+  } else if(is.element(type, c("rf", "resid-fitted"))) {
     plot_resid_fitted(object, ...)
   } else if(is.element(type, c("qq"))) {
     plot_qq(object, ...)
@@ -51,12 +53,20 @@ autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
 #' @importFrom graphics plot
 #' @export
 plot.tbl_df_diag <- function(x, type = "rf", ...) {
-  print(autoplot(x, type = type, ...))
+  print(autoplot.tbl_df_diag(x, type = type, ...))
+}
+
+
+#' plot_measured_fitted
+#' @importFrom ggplot2 ggplot aes geom_point
+plot_measured_fitted <- function(object, ...) {
+  ggplot(object, aes(.fitted, !! attr(object, "model")$term[[2]])) +
+    geom_point(shape = 1)
 }
 
 
 #' plot_resid_fitted
-#' @importFrom ggplot2 ggplot geom_point geom_smooth 
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 plot_resid_fitted <- function(object, ...) {
   ggplot(object, aes(.fitted, .resid)) +
     geom_point(shape = 1) +
@@ -66,7 +76,7 @@ plot_resid_fitted <- function(object, ...) {
 
 
 #' plot_qq
-#' @importFrom ggplot2 ggplot stat_qq stat_qq_line
+#' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
 plot_qq <- function(object, ...) {
   ggplot(object, aes(sample = .resid)) +
     geom_qq(shape = 1) +
@@ -75,7 +85,7 @@ plot_qq <- function(object, ...) {
 
 
 #' plot_scale_location
-#' @importFrom ggplot2 ggplot geom_point geom_smooth
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 plot_scale_location <- function(object, ...) {
   ggplot(object, aes(.fitted, .std.resid_abs_sqrt)) +
     geom_point(shape = 1) +
@@ -85,7 +95,7 @@ plot_scale_location <- function(object, ...) {
 
 
 #' plot_influential
-#' @importFrom ggplot2 ggplot geom_point geom_line
+#' @importFrom ggplot2 ggplot aes geom_point geom_line geom_hline coord_cartesian
 #' @importFrom tibble tibble
 plot_influential <- function(object, ...) {
   model <- attr(object, "model")
