@@ -7,7 +7,7 @@
 new_tibble_diag <- function(x, model) {
   stopifnot(is_tibble(x))
   class(x) <- append("tbl_df_diag", class(x))
-  attr(x, "model")
+  attr(x, "model") <- model
   return(x)
 }
 

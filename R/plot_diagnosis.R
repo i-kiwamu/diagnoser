@@ -27,179 +27,119 @@ p2star <- function(p)
                        ifelse(p < 0.05, "*", "ns"))))
 
 
-#' GeomPointLoess
-#' @importFrom ggplot2 ggproto Geom GeomPoint GeomSmooth
-#' @importFrom grid gList
+#' autoplot.tbl_df_diag
+#' @importFrom ggplot2 autoplot
+#' @importFrom cli cli_alert_danger
+#' @importFrom glue glue
 #' @export
-GeomPointLoess <- 
-  ggproto("GeomPointLoess", Geom,
-          required_aes = c("x", "y"),
-          default_aes = aes(colour = "black", size = 2, shape = 19,
-                            linetype = 1, linewidth = 0.5,
-                            fill = NA, alpha = NA, stroke = 1),
-          draw_panel = function(data, panel_params, coord, ...) {
-            gList(GeomPoint$draw_panel(data, panel_params_point, coord, ...),
-                  GeomSmooth$draw_panel(data, panel_params_smooth, coord, ...))
-          })
-
-#' geom_diag_resid_fitted
-#' @importFrom ggplot2 layer aes GeomPoint
-#' @importFrom rlang list2
-#' @importFrom cli cli_alert_warning
-#' @inheritParams ggplot2::geom_point
-#' @export
-geom_diag_resid_fitted <-
-  function(mapping = NULL, data = NULL,
-           stat = "identity", position = "identity",
-           ..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
-    if (!is.null(mapping)) {
-      cli_alert_warning("aes() is specified, but ignored...")
-    }
-    layer(data = data, mapping = aes(x = .fitted, y = .resid),
-          geom = GeomPointLoess, stat = stat, position = position,
-          show.legend = show.legend, inherit.aes = inherit.aes,
-          params = list2(na.rm = na.rm, ...))
+autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
+  if(is.element(type, c("rf", "resid-fitted"))) {
+    plot_resid_fitted(object, ...)
+  } else if(is.element(type, c("qq"))) {
+    plot_qq(object, ...)
+  } else if(is.element(type, c("sl", "scale-location"))) {
+    plot_scale_location(object, ...)
+  } else if(is.element(type, c("infl", "influential"))) {
+    plot_influential(object, ...)
+  } else {
+    cli_alert_danger(glue("The type of {type} is not available!"))
+  }
 }
 
 
-
-
-# plot_diagnosis ==============================================================
-
-#' Generic function of plot_diagnosis
-#' @param model model object
-#' @param ... additional arguments
-#' @note This is a generic function to make the diagnosis plot of the model.
+#' plot.tbl_df_diag
+#' @importFrom graphics plot
 #' @export
-#' @seealso \code{\link{plot}}
-plot_diagnosis <- function(model, ...) UseMethod("plot_diagnosis")
+plot.tbl_df_diag <- function(x, type = "rf", ...) {
+  print(autoplot(x, type = type, ...))
+}
 
 
-#' Diagnosis plot fo lm object
-#' @importFrom stats cooks.distance fitted resid
+#' plot_resid_fitted
+#' @importFrom ggplot2 ggplot geom_point geom_smooth 
+plot_resid_fitted <- function(object, ...) {
+  ggplot(object, aes(.fitted, .resid)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "loess", colour = "red", se = FALSE,
+                linewidth = 0.3)
+}
+
+
+#' plot_qq
+#' @importFrom ggplot2 ggplot stat_qq stat_qq_line
+plot_qq <- function(object, ...) {
+  ggplot(object, aes(sample = .resid)) +
+    geom_qq(shape = 1) +
+    geom_qq_line(linewidth = 0.3)
+}
+
+
+#' plot_scale_location
+#' @importFrom ggplot2 ggplot geom_point geom_smooth
+plot_scale_location <- function(object, ...) {
+  ggplot(object, aes(.fitted, .std.resid_abs_sqrt)) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "loess", colour = "red", se = FALSE,
+                linewidth = 0.3)
+}
+
+
+#' plot_influential
+#' @importFrom ggplot2 ggplot geom_point geom_line
 #' @importFrom tibble tibble
-#' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
-#' @importFrom cowplot plot_grid
-#' @param model lm object
-#' @param ... Not to be used.
-#' @note It produces four plots: Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance.
-#' @examples
-#' fit <- lm(weight ~ height, women)
-#' plot_diagnosis(fit)
-#' @export
-plot_diagnosis.lm <- function(model, ...) {
-  df <- tibble(
-    fitted = fitted(model),
-    resid = resid(model, type = "pearson"),
-    resid_std = sqrt(abs(resid(model, type = "pearson"))),
-    cooks = cooks.distance(model))
-  p1 <- ggplot(df, aes(fitted, resid)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Residual vs Fitted",
-         x = "Fitted values", y = "Residuals")
-  p2 <- ggplot(df, aes(sample = resid)) +
-    stat_qq_line(colour = "gray", linetype = "dashed") +
-    stat_qq() +
-    labs(title = "Normal QQ",
-         x = "Theoretical quantities", y = "Standardized residuals")
-  p3 <- ggplot(df, aes(fitted, resid_std)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Scale-Location",
-         x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
-  p4 <- ggplot(df, aes(1:nrow(df), cooks)) +
-    geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
-    geom_point() +
-    labs(title = "Cook's distance",
-         x = "Index", y = "Cook's distance")
-  plot_grid(
-    p1, p2, p3, p4,
-    align = "hv", nrow = 2, ncol = 2)
+plot_influential <- function(object, ...) {
+  model <- attr(object, "model")
+  p <- get_rank(model)
+  df_cook <-
+    tibble(x = seq(0, max(object$leverage.overall), length.out = 100)) |>
+    mutate(cook05 = 0.5 * p * (1 - x) / x,
+           cook10 = 1.0 * p * (1 - x) / x,
+           cook05_upr = sqrt(cook05),
+           cook05_lwr = -cook05_upr,
+           cook10_upr = sqrt(cook10),
+           cook10_lwr = -cook10_upr)
+  ggplot(object, aes(leverage.overall, .std.resid)) +
+    geom_point(aes(size = cooksd), shape = 1) +
+    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3,
+               colour = "gray") +
+    geom_line(data = df_cook, aes(x = x, y = cook05_upr, group = 1),
+              linetype = "dashed", linewidth = 0.3, colour = "black") +
+    geom_line(data = df_cook, aes(x = x, y = cook05_lwr, group = 1),
+              linetype = "dashed", linewidth = 0.3, colour = "black") +
+    geom_line(data = df_cook, aes(x = x, y = cook10_upr, group = 1),
+              linetype = "solid", linewidth = 0.3, colour = "black") +
+    geom_line(data = df_cook, aes(x = x, y = cook10_lwr, group = 1),
+              linetype = "solid", linewidth = 0.3, colour = "black") +
+    coord_cartesian(xlim = range(object$leverage.overall),
+                    ylim = range(object$.std.resid))
 }
 
 
-#' Diagnosis plot fo lme object
-#' @importFrom HLMdiag hlm_augment hlm_resid
-#' @importFrom dplyr mutate
-#' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
-#' @importFrom cowplot plot_grid
-#' @param model lme object
-#' @param ... Not to be used.
-#' @note four plots of Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance
-#' @keywords function
-#' @author ISHIKURA Kiwamu
-#' @examples
-#' library(nlme)
-#' fit <- lme(circumference ~ age, random = ~ 1|Tree, Orange)
-#' plot_diagnosis(fit)
-#' @export
-plot_diagnosis.lme <- function(model, ...) {
-  df <- hlm_augment(model) |>
-    mutate(.std.resid = hlm_resid(model, standardize = TRUE)$.std.resid)
-  p1 <- ggplot(df, aes(.fitted, .resid)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Residual vs Fitted",
-         x = "Fitted values", y = "Residuals")
-  p2 <- ggplot(df, aes(sample = .std.resid)) +
-    stat_qq_line(colour = "gray", linetype = "dashed") +
-    stat_qq() +
-    labs(title = "Normal QQ",
-         x = "Theoretical quantities", y = "Standardized residuals")
-  p3 <- ggplot(df, aes(.fitted, .std.resid)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Scale-Location",
-         x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
-  p4 <- ggplot(df, aes(1:nrow(df), cooksd)) +
-    geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
-    geom_point() +
-    labs(title = "Cook's distance",
-         x = "Index", y = "Cook's distance")
-  plot_grid(
-    p1, p2, p3, p4,
-    align = "hv", nrow = 2, ncol = 2)
+#' get_rank
+get_rank <- function(model) UseMethod("get_rank", model)
+
+
+#' get_rank.default
+#' @importFrom glue glue
+get_rank.default <- function(model) {
+  stop(glue("There is no method for the class of {class(model)}!"))
 }
 
 
+#' get_rank.lm
+get_rank.lm <- function(model) {
+  return(model$rank)
+}
 
-#' Diagnosis plot fo lmerMod object
-#' @importFrom HLMdiag hlm_augment
-#' @importFrom ggplot2 ggplot aes geom_smooth geom_point labs stat_qq_line stat_qq geom_hline
-#' @importFrom cowplot plot_grid
-#' @param model lmerMod object
-#' @param ... Not to be used.
-#' @note It produces four plots: Residual vs Fitted, Normal QQ, Scale-Location, and Cook's distance.
-#' @examples
-#' library(lme4)
-#' fit <- lmer(circumference ~ age + (1|Tree), Orange)
-#' plot_diagnosis(fit)
-#' @export
-plot_diagnosis.lmerMod <- function(model, ...) {
-  df <- hlm_augment(model) |>
-    mutate(.std.resid = hlm_resid(model, standardize = TRUE)$.std.resid)
-  p1 <- ggplot(df, aes(.fitted, .resid)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Residual vs Fitted",
-         x = "Fitted values", y = "Residuals")
-  p2 <- ggplot(df, aes(sample = .std.resid)) +
-    stat_qq_line(colour = "gray", linetype = "dashed") +
-    stat_qq() +
-    labs(title = "Normal QQ",
-         x = "Theoretical quantities", y = "Standardized residuals")
-  p3 <- ggplot(df, aes(.fitted, .std.resid)) +
-    geom_smooth(method = "loess", colour = "blue", se = FALSE) +
-    geom_point() +
-    labs(title = "Scale-Location",
-         x = "Fitted values", y = expression(sqrt("|Standardized residuals|")))
-  p4 <- ggplot(df, aes(1:nrow(df), cooksd)) +
-    geom_hline(yintercept = 0.5, colour = "blue", linetype = "dashed") +
-    geom_point() +
-    labs(title = "Cook's distance",
-         x = "Index", y = "Cook's distance")
-  plot_grid(
-    p1, p2, p3, p4,
-    align = "hv", nrow = 2, ncol = 2)
+
+#' get_rank.lme
+#' @importFrom HLMdiag extract_design
+get_rank.lme <- function(model) {
+  return(ncol(extract_design(model)$X))
+}
+
+
+#' get_rank.lmerMod
+get_rank.lmerMod <- function(model) {
+  return(ncol(slot(model, "pp")$X))
 }
