@@ -60,3 +60,18 @@ diagnose.lme <- function(model) {
 
   return(new_tibble_diag(influence, model))
 }
+
+
+#' Diagnose a lmerMod model
+#' @importFrom HLMdiag hlm_augment hlm_resid
+#' @importFrom dplyr mutate
+#' @param model lmerMod object
+#' @note To diagnose the lmerMod model
+#' @export
+diagnose.lmerMod <- function(model) {
+  influence <- hlm_augment(model, include.ls = FALSE) |>
+    mutate(.std.resid = resid(model, type = "pearson", scaled = TRUE),
+           .std.resid_abs_sqrt = sqrt(abs(.std.resid)))
+  
+  return(new_tibble_diag(influence, model))
+}
