@@ -119,7 +119,8 @@ plot_marginal_model <- function(object, formula, ...) {
     cli_alert_danger("Argument formula requires one variable!")
   }
   model <- attr(object, "model")
-  ggplot(object, aes(!! formula[[2]], !! attr(object, "model")$term[[2]])) +
+  resp <- model$terms[[2]]
+  ggplot(object, aes(!! formula[[2]], !! resp)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess",
                 aes(colour = "Data", linetype = "Data"), 
