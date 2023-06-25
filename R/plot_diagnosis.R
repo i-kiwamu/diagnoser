@@ -65,15 +65,15 @@ plot.tbl_df_diag <- function(x, type = "rf", ...) {
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
 plot_measured_fitted <- function(object, ...) {
-  df_repel <- object |> filter(cooksd > 0.05)
-  p <- object |>
-    ggplot(aes(.fitted, !! attr(object, "model")$term[[2]])) +
-    geom_point(shape = 1)
-  if (nrow(df_repel) > 1) {
-    p <- p +
-      geom_text_repel(data = df_repel, aes(label = .rownames))
+  model <- attr(object, "model")
+  if (is.element(class(model), c("aov", "lm", "lme"))) {
+    resp <- attr(object, "model")$terms[[2]]
+  } else if (class(model) == "lmerMod") {
+    resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  return(p)
+  ggplot(object, aes(.fitted, !! resp, label = label)) +
+    geom_point(shape = 1) +
+    geom_text_repel()
 }
 
 
@@ -81,17 +81,11 @@ plot_measured_fitted <- function(object, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 #' @importFrom ggrepel geom_text_repel
 plot_resid_fitted <- function(object, ...) {
-  df_repel <- object |> filter(cooksd > 0.05)
-  p <- object |>
-    ggplot(aes(.fitted, .std.resid)) +
+  ggplot(object, aes(.fitted, .std.resid, label = label)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
-                linewidth = 0.3)
-  if (nrow(df_repel) > 1) {
-    p <- p +
-      geom_text_repel(data = df_repel, aes(label = .rownames))
-  }
-  return(p)
+                linewidth = 0.3) +
+    geom_text_repel()
 }
 
 
@@ -99,16 +93,10 @@ plot_resid_fitted <- function(object, ...) {
 #' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
 #' @importFrom ggrepel geom_text_repel
 plot_qq <- function(object, ...) {
-  df_repel <- object |> filter(cooksd > 0.05)
-  p <- object |>
-    ggplot(aes(sample = .resid)) +
+  ggplot(object, aes(sample = .resid, label = label)) +
     geom_qq(shape = 1) +
-    geom_qq_line(linewidth = 0.3)
-  if (nrow(df_repel) > 1) {
-    p <- p +
-      geom_text_repel(data = df_repel, aes(label = .rownames))
-  }
-  return(p)
+    geom_qq_line(linewidth = 0.3) +
+    geom_text_repel()
 }
 
 
@@ -116,36 +104,26 @@ plot_qq <- function(object, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
 plot_scale_location <- function(object, ...) {
-  df_repel <- object |> filter(cooksd > 0.05)
-  p <- object |>
-    ggplot(aes(.fitted, .std.resid_abs_sqrt)) +
+  ggplot(object, aes(.fitted, .std.resid_abs_sqrt, label = label)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
-                linewidth = 0.3)
-  if (nrow(df_repel) > 1) {
-    p <- p +
-      geom_text_repel(data = df_repel, aes(label = .rownames))
-  }
-  return(p)
+                linewidth = 0.3) +
+    geom_text_repel()
 }
 
 
 #' plot_cooksd
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
-#' @importFrom tibble tibble
+#' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
 plot_cooksd <- function(object, ...) {
-  df_repel <- object |> filter(cooksd > 0.05)
-  p <- object |> 
-    ggplot(aes(seq(1, nrow(object)), cooksd)) +
+  object |>
+    rowid_to_column(var = "id") |>
+    ggplot(aes(id, cooksd, label = label)) +
     geom_point(shape = 1) +
     geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
-    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3)
-  if (nrow(df_repel) > 1) {
-    p <- p +
-      geom_text_repel(data = df_repel, aes(label = .rownames))
-  }
-  return(p)
+    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3) +
+    geom_text_repel()
 }
 
 
@@ -160,7 +138,12 @@ plot_marginal_model <- function(object, formula, ...) {
     cli_alert_danger("Argument formula requires one variable!")
   }
   model <- attr(object, "model")
-  resp <- model$terms[[2]]
+  model_class <- class(model)
+  if (is.element(model_class, c("aov", "lm", "lme"))) {
+    resp <- attr(object, "model")$terms[[2]]
+  } else if (model_class == "lmerMod") {
+    resp <- attr(slot(model, "frame"), "terms")[[2]]
+  }
   explanatory <- formula[[2]]
   ggplot(object, aes(!! explanatory, !! resp)) +
     geom_point(shape = 1) +
@@ -181,6 +164,9 @@ plot_marginal_model <- function(object, formula, ...) {
 #' plot_added_variable
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline
 #' @importFrom tibble tibble
+#' @importFrom stats update
+#' @importFrom nlme lme lme.formula fixef
+#' @importFrom lme4 lmer fixef
 #' @importFrom cli cli_alert_danger
 plot_added_variable <- function(object, formula, ...) {
   if (is.null(formula)) {
@@ -189,10 +175,23 @@ plot_added_variable <- function(object, formula, ...) {
   if (length(formula[[2]]) != 1) {
     cli_alert_danger("Argument formula requires one variable!")
   }
+  
   model <- attr(object, "model")
-  resp <- model$terms[[2]]
+  model_class <- class(model)
   explanatory <- formula[[2]]
-  coef_sub <- coef(model)[c("(Intercept)", as.character(explanatory))]
+  which_coef <- c("(Intercept)", as.character(explanatory))
+  
+  if (is.element(model_class, c("aov", "lm"))) {
+    resp <- model$terms[[2]]
+    coef_sub <- coef(model)[which_coef]
+  } else if (model_class == "lme") {
+    resp <- model$terms[[2]]
+    coef_sub <- nlme::fixef(model)[which_coef]
+  } else if (model_class == "lmerMod") {
+    resp <- attr(slot(model, "frame"), "terms")[[2]]
+    coef_sub <- lme4::fixef(model)[which_coef]
+  }
+  
   model1 <- update(model, substitute(~ . - a, list(a = explanatory)))
   model2 <- update(model1, substitute(a ~ ., list(a = explanatory)))
   df_plot <- tibble(x = residuals(model2), y = residuals(model1))

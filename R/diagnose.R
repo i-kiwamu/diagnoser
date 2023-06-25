@@ -26,6 +26,8 @@ diagnose.aov <- function(model) {
     influence <- influence |>
       mutate(.rownames = rownames(influence))
   }
+  influence <- influence |>
+    mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
   
   return(new_tibble_diag(influence, model))
 }
@@ -46,6 +48,8 @@ diagnose.lm <- function(model) {
     influence <- influence |>
       mutate(.rownames = rownames(influence))
   }
+  influence <- influence |>
+    mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
 
   return(new_tibble_diag(influence, model))
 }
@@ -65,6 +69,8 @@ diagnose.lme <- function(model) {
   if (any(is.na(influence$.rownames))) {
     influence$.rownames <- rownames(model$data)
   }
+  influence <- influence |>
+    mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
 
   return(new_tibble_diag(influence, model))
 }
@@ -84,6 +90,8 @@ diagnose.lmerMod <- function(model) {
   if (any(is.na(influence$.rownames))) {
     influence$.rownames <- rownames(slot(model, "frame"))
   }
+  influence <- influence |>
+    mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
   
   return(new_tibble_diag(influence, model))
 }
