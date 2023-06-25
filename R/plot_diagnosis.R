@@ -45,6 +45,8 @@ autoplot.tbl_df_diag <- function(object, type = "rf", formula = NULL, ...) {
     plot_cooksd(object, ...)
   } else if(is.element(type, c("mm", "marginal-model"))) {
     plot_marginal_model(object, formula = formula, ...)
+  } else if(is.element(type, c("av", "added-variable"))) {
+    plot_added_variable(object, formula = formula, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -109,7 +111,6 @@ plot_cooksd <- function(object, ...) {
 
 #' plot_marginal_model
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
-#' @importFrom tibble tibble
 #' @importFrom cli cli_alert_danger
 plot_marginal_model <- function(object, formula, ...) {
   if (is.null(formula)) {
@@ -120,7 +121,8 @@ plot_marginal_model <- function(object, formula, ...) {
   }
   model <- attr(object, "model")
   resp <- model$terms[[2]]
-  ggplot(object, aes(!! formula[[2]], !! resp)) +
+  explanatory <- formula[[2]]
+  ggplot(object, aes(!! explanatory, !! resp)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess",
                 aes(colour = "Data", linetype = "Data"), 
@@ -134,6 +136,34 @@ plot_marginal_model <- function(object, formula, ...) {
     scale_linetype_manual(name = "", breaks = c("Data", "Model"),
                           values = c("Data" = "solid", "Model" = "dashed"))
 }
+
+
+#' plot_added_variable
+#' @importFrom ggplot2 ggplot aes geom_point geom_abline
+#' @importFrom tibble tibble
+#' @importFrom cli cli_alert_danger
+plot_added_variable <- function(object, formula, ...) {
+  if (is.null(formula)) {
+    cli_alert_danger("Argument formula is required!")
+  }
+  if (length(formula[[2]]) != 1) {
+    cli_alert_danger("Argument formula requires one variable!")
+  }
+  model <- attr(object, "model")
+  resp <- model$terms[[2]]
+  explanatory <- formula[[2]]
+  coef_sub <- coef(model)[c("(Intercept)", as.character(explanatory))]
+  model1 <- update(model, substitute(~ . - a, list(a = explanatory)))
+  model2 <- update(model1, substitute(a ~ ., list(a = explanatory)))
+  df_plot <- tibble(x = residuals(model2), y = residuals(model1))
+  ggplot(df_plot, aes(x = x, y = y)) +
+    geom_point(shape = 1) +
+    geom_abline(intercept = coef_sub[1L], slope = coef_sub[2L],
+                linewidth = 0.3) +
+    labs(x = paste(explanatory, "| others"),
+         y = paste(resp, "| others"))
+}
+
 
 
 #' get_rank
