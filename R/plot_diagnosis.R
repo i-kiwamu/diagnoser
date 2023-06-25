@@ -63,49 +63,89 @@ plot.tbl_df_diag <- function(x, type = "rf", ...) {
 
 #' plot_measured_fitted
 #' @importFrom ggplot2 ggplot aes geom_point
+#' @importFrom ggrepel geom_text_repel
 plot_measured_fitted <- function(object, ...) {
-  ggplot(object, aes(.fitted, !! attr(object, "model")$term[[2]])) +
+  df_repel <- object |> filter(cooksd > 0.05)
+  p <- object |>
+    ggplot(aes(.fitted, !! attr(object, "model")$term[[2]])) +
     geom_point(shape = 1)
+  if (nrow(df_repel) > 1) {
+    p <- p +
+      geom_text_repel(aes(label = .rownames))
+  }
+  return(p)
 }
 
 
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
+#' @importFrom ggrepel geom_text_repel
 plot_resid_fitted <- function(object, ...) {
-  ggplot(object, aes(.fitted, .std.resid)) +
+  df_repel <- object |> filter(cooksd > 0.05)
+  p <- object |>
+    ggplot(aes(.fitted, .std.resid)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
                 linewidth = 0.3)
+  if (nrow(df_repel) > 1) {
+    p <- p +
+      geom_text_repel(aes(label = .rownames))
+  }
+  return(p)
 }
 
 
 #' plot_qq
 #' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
+#' @importFrom ggrepel geom_text_repel
 plot_qq <- function(object, ...) {
-  ggplot(object, aes(sample = .resid)) +
+  df_repel <- object |> filter(cooksd > 0.05)
+  p <- object |>
+    ggplot(aes(sample = .resid)) +
     geom_qq(shape = 1) +
     geom_qq_line(linewidth = 0.3)
+  if (nrow(df_repel) > 1) {
+    p <- p +
+      geom_text_repel(aes(label = .rownames))
+  }
+  return(p)
 }
 
 
 #' plot_scale_location
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
+#' @importFrom ggrepel geom_text_repel
 plot_scale_location <- function(object, ...) {
-  ggplot(object, aes(.fitted, .std.resid_abs_sqrt)) +
+  df_repel <- object |> filter(cooksd > 0.05)
+  p <- object |>
+    ggplot(aes(.fitted, .std.resid_abs_sqrt)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
                 linewidth = 0.3)
+  if (nrow(df_repel) > 1) {
+    p <- p +
+      geom_text_repel(aes(label = .rownames))
+  }
+  return(p)
 }
 
 
 #' plot_cooksd
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom tibble tibble
+#' @importFrom ggrepel geom_text_repel
 plot_cooksd <- function(object, ...) {
-  ggplot(object, aes(id, cooksd)) +
+  df_repel <- object |> filter(cooksd > 0.05)
+  p <- object |> 
+    ggplot(aes(seq(1, nrow(object)), cooksd)) +
     geom_point(shape = 1) +
     geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3)
+  if (nrow(df_repel) > 1) {
+    p <- p +
+      geom_text_repel(aes(label = .rownames))
+  }
+  return(p)
 }
 
 
