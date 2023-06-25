@@ -41,8 +41,8 @@ autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
     plot_qq(object, ...)
   } else if(is.element(type, c("sl", "scale-location"))) {
     plot_scale_location(object, ...)
-  } else if(is.element(type, c("infl", "influential"))) {
-    plot_influential(object, ...)
+  } else if(is.element(type, c("cook", "cooks-distance"))) {
+    plot_cooksd(object, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -68,7 +68,7 @@ plot_measured_fitted <- function(object, ...) {
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 plot_resid_fitted <- function(object, ...) {
-  ggplot(object, aes(.fitted, .resid)) +
+  ggplot(object, aes(.fitted, .std.resid)) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
                 linewidth = 0.3)
@@ -94,34 +94,14 @@ plot_scale_location <- function(object, ...) {
 }
 
 
-#' plot_influential
-#' @importFrom ggplot2 ggplot aes geom_point geom_line geom_hline coord_cartesian
+#' plot_cooksd
+#' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom tibble tibble
-plot_influential <- function(object, ...) {
-  model <- attr(object, "model")
-  p <- get_rank(model)
-  df_cook <-
-    tibble(x = seq(0, max(object$leverage.overall), length.out = 100)) |>
-    mutate(cook05 = 0.5 * p * (1 - x) / x,
-           cook10 = 1.0 * p * (1 - x) / x,
-           cook05_upr = sqrt(cook05),
-           cook05_lwr = -cook05_upr,
-           cook10_upr = sqrt(cook10),
-           cook10_lwr = -cook10_upr)
-  ggplot(object, aes(leverage.overall, .std.resid)) +
-    geom_point(aes(size = cooksd), shape = 1) +
-    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3,
-               colour = "gray") +
-    geom_line(data = df_cook, aes(x = x, y = cook05_upr, group = 1),
-              linetype = "dashed", linewidth = 0.3, colour = "black") +
-    geom_line(data = df_cook, aes(x = x, y = cook05_lwr, group = 1),
-              linetype = "dashed", linewidth = 0.3, colour = "black") +
-    geom_line(data = df_cook, aes(x = x, y = cook10_upr, group = 1),
-              linetype = "solid", linewidth = 0.3, colour = "black") +
-    geom_line(data = df_cook, aes(x = x, y = cook10_lwr, group = 1),
-              linetype = "solid", linewidth = 0.3, colour = "black") +
-    coord_cartesian(xlim = range(object$leverage.overall),
-                    ylim = range(object$.std.resid))
+plot_cooksd <- function(object, ...) {
+  ggplot(object, aes(id, cooksd)) +
+    geom_point(shape = 1) +
+    geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
+    geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3)
 }
 
 
