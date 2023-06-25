@@ -4,7 +4,7 @@
 \alias{plot_cooksd}
 \title{plot_cooksd}
 \usage{
-plot_cooksd(object, ...)
+plot_cooksd(object, mapping, ...)
 }
 \description{
 plot_cooksd

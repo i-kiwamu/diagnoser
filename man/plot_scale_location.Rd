@@ -4,7 +4,7 @@
 \alias{plot_scale_location}
 \title{plot_scale_location}
 \usage{
-plot_scale_location(object, ...)
+plot_scale_location(object, mapping, ...)
 }
 \description{
 plot_scale_location

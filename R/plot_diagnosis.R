@@ -27,26 +27,39 @@ p2star <- function(p)
                        ifelse(p < 0.05, "*", "ns"))))
 
 
+#' update_aes
+update_aes <- function(mapping_orig, mapping_new) {
+  result <- mapping_orig
+  names_new <- names(mapping_new)
+  for (i in seq_along(mapping_new)) {
+    nn <- names_new[i]
+    result[[nn]] <- mapping_new[[i]]
+  }
+  return(result)
+}
+
+
 #' autoplot.tbl_df_diag
 #' @importFrom ggplot2 autoplot
 #' @importFrom cli cli_alert_danger
 #' @importFrom glue glue
 #' @export
-autoplot.tbl_df_diag <- function(object, type = "mf", formula = NULL, ...) {
+autoplot.tbl_df_diag <-
+  function(object, type = "mf", formula = NULL, mapping = NULL, ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
-    plot_measured_fitted(object, ...)
+    plot_measured_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
-    plot_resid_fitted(object, ...)
+    plot_resid_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("qq"))) {
-    plot_qq(object, ...)
+    plot_qq(object, mapping = mapping, ...)
   } else if(is.element(type, c("sl", "scale-location"))) {
-    plot_scale_location(object, ...)
+    plot_scale_location(object, mapping = mapping, ...)
   } else if(is.element(type, c("cook", "cooks-distance"))) {
-    plot_cooksd(object, ...)
+    plot_cooksd(object, mapping = mapping, ...)
   } else if(is.element(type, c("mm", "marginal-model"))) {
-    plot_marginal_model(object, formula = formula, ...)
+    plot_marginal_model(object, formula = formula, mapping = mapping, ...)
   } else if(is.element(type, c("av", "added-variable"))) {
-    plot_added_variable(object, formula = formula, ...)
+    plot_added_variable(object, formula = formula, mapping = mapping, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -56,22 +69,27 @@ autoplot.tbl_df_diag <- function(object, type = "mf", formula = NULL, ...) {
 #' plot.tbl_df_diag
 #' @importFrom graphics plot
 #' @export
-plot.tbl_df_diag <- function(x, type = "mf", ...) {
-  print(autoplot.tbl_df_diag(x, type = type, ...))
+plot.tbl_df_diag <-
+  function(x, type = "mf", formula = NULL, mapping = NULL, ...) {
+  print(autoplot.tbl_df_diag(
+    x, type = type, formula = formula, mapping = mapping, ...
+  ))
 }
 
 
 #' plot_measured_fitted
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
-plot_measured_fitted <- function(object, ...) {
+plot_measured_fitted <- function(object, mapping, ...) {
   model <- attr(object, "model")
-  if (is.element(class(model), c("aov", "lm", "lme"))) {
+  model_class <- class(model)
+  if (is.element(model_class, c("aov", "lm", "lme"))) {
     resp <- attr(object, "model")$terms[[2]]
-  } else if (class(model) == "lmerMod") {
+  } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  ggplot(object, aes(.fitted, !! resp, label = label)) +
+  mapping_new <- update_aes(aes(.fitted, !! resp, label = label), mapping)
+  ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_text_repel()
 }
@@ -80,8 +98,9 @@ plot_measured_fitted <- function(object, ...) {
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 #' @importFrom ggrepel geom_text_repel
-plot_resid_fitted <- function(object, ...) {
-  ggplot(object, aes(.fitted, .std.resid, label = label)) +
+plot_resid_fitted <- function(object, mapping, ...) {
+  mapping_new <- update_aes(aes(.fitted, .std.resid, label = label), mapping)
+  ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
                 linewidth = 0.3) +
@@ -91,20 +110,21 @@ plot_resid_fitted <- function(object, ...) {
 
 #' plot_qq
 #' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
-#' @importFrom ggrepel geom_text_repel
-plot_qq <- function(object, ...) {
-  ggplot(object, aes(sample = .resid, label = label)) +
+plot_qq <- function(object, mapping, ...) {
+  mapping_new <- update_aes(aes(sample = .resid), mapping)
+  ggplot(object, mapping_new) +
     geom_qq(shape = 1) +
-    geom_qq_line(linewidth = 0.3) +
-    geom_text_repel()
+    geom_qq_line(linewidth = 0.3)
 }
 
 
 #' plot_scale_location
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
-plot_scale_location <- function(object, ...) {
-  ggplot(object, aes(.fitted, .std.resid_abs_sqrt, label = label)) +
+plot_scale_location <- function(object, mapping, ...) {
+  mapping_new <- update_aes(aes(.fitted, .std.resid_abs_sqrt, label = label),
+                            mapping)
+  ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", colour = "red", se = FALSE,
                 linewidth = 0.3) +
@@ -116,10 +136,11 @@ plot_scale_location <- function(object, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
-plot_cooksd <- function(object, ...) {
+plot_cooksd <- function(object, mapping, ...) {
+  mapping_new <- update_aes(aes(id, cooksd, label = label), mapping)
   object |>
     rowid_to_column(var = "id") |>
-    ggplot(aes(id, cooksd, label = label)) +
+    ggplot(mapping_new) +
     geom_point(shape = 1) +
     geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3) +
@@ -130,7 +151,7 @@ plot_cooksd <- function(object, ...) {
 #' plot_marginal_model
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom cli cli_alert_danger
-plot_marginal_model <- function(object, formula, ...) {
+plot_marginal_model <- function(object, mapping, formula, ...) {
   if (is.null(formula)) {
     cli_alert_danger("Argument formula is required!")
   }
@@ -145,7 +166,9 @@ plot_marginal_model <- function(object, formula, ...) {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
   explanatory <- formula[[2]]
-  ggplot(object, aes(!! explanatory, !! resp)) +
+  
+  mapping_new <- update_aes(aes(!! explanatory, !! resp), mapping)
+  ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess",
                 aes(colour = "Data", linetype = "Data"), 
@@ -168,7 +191,7 @@ plot_marginal_model <- function(object, formula, ...) {
 #' @importFrom nlme lme lme.formula fixef
 #' @importFrom lme4 lmer fixef
 #' @importFrom cli cli_alert_danger
-plot_added_variable <- function(object, formula, ...) {
+plot_added_variable <- function(object, mapping, formula, ...) {
   if (is.null(formula)) {
     cli_alert_danger("Argument formula is required!")
   }
@@ -194,42 +217,13 @@ plot_added_variable <- function(object, formula, ...) {
   
   model1 <- update(model, substitute(~ . - a, list(a = explanatory)))
   model2 <- update(model1, substitute(a ~ ., list(a = explanatory)))
+  
+  mapping_new <- update_aes(aes(x = x, y = y), mapping)
   df_plot <- tibble(x = residuals(model2), y = residuals(model1))
-  ggplot(df_plot, aes(x = x, y = y)) +
+  ggplot(df_plot, mapping_new) +
     geom_point(shape = 1) +
     geom_abline(intercept = coef_sub[1L], slope = coef_sub[2L],
                 linewidth = 0.3) +
     labs(x = paste(explanatory, "| others"),
          y = paste(resp, "| others"))
-}
-
-
-
-#' get_rank
-get_rank <- function(model) UseMethod("get_rank", model)
-
-
-#' get_rank.default
-#' @importFrom glue glue
-get_rank.default <- function(model) {
-  stop(glue("There is no method for the class of {class(model)}!"))
-}
-
-
-#' get_rank.lm
-get_rank.lm <- function(model) {
-  return(model$rank)
-}
-
-
-#' get_rank.lme
-#' @importFrom HLMdiag extract_design
-get_rank.lme <- function(model) {
-  return(ncol(extract_design(model)$X))
-}
-
-
-#' get_rank.lmerMod
-get_rank.lmerMod <- function(model) {
-  return(ncol(slot(model, "pp")$X))
 }

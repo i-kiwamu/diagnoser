@@ -4,7 +4,7 @@
 \alias{plot_measured_fitted}
 \title{plot_measured_fitted}
 \usage{
-plot_measured_fitted(object, ...)
+plot_measured_fitted(object, mapping, ...)
 }
 \description{
 plot_measured_fitted
