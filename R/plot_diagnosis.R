@@ -56,7 +56,7 @@ autoplot.tbl_df_diag <- function(object, type = "mf", formula = NULL, ...) {
 #' plot.tbl_df_diag
 #' @importFrom graphics plot
 #' @export
-plot.tbl_df_diag <- function(x, type = "rf", ...) {
+plot.tbl_df_diag <- function(x, type = "mf", ...) {
   print(autoplot.tbl_df_diag(x, type = type, ...))
 }
 
