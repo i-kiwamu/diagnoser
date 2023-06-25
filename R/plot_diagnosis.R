@@ -32,7 +32,7 @@ p2star <- function(p)
 #' @importFrom cli cli_alert_danger
 #' @importFrom glue glue
 #' @export
-autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
+autoplot.tbl_df_diag <- function(object, type = "rf", formula = NULL, ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
     plot_measured_fitted(object, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
@@ -43,6 +43,8 @@ autoplot.tbl_df_diag <- function(object, type = "rf", ...) {
     plot_scale_location(object, ...)
   } else if(is.element(type, c("cook", "cooks-distance"))) {
     plot_cooksd(object, ...)
+  } else if(is.element(type, c("mm", "marginal-model"))) {
+    plot_marginal_model(object, formula = formula, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -102,6 +104,34 @@ plot_cooksd <- function(object, ...) {
     geom_point(shape = 1) +
     geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3)
+}
+
+
+#' plot_marginal_model
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth
+#' @importFrom tibble tibble
+#' @importFrom cli cli_alert_danger
+plot_marginal_model <- function(object, formula, ...) {
+  if (is.null(formula)) {
+    cli_alert_danger("Argument formula is required!")
+  }
+  if (length(formula[[2]]) != 1) {
+    cli_alert_danger("Argument formula requires one variable!")
+  }
+  model <- attr(object, "model")
+  ggplot(object, aes(!! formula[[2]], !! attr(object, "model")$term[[2]])) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "loess",
+                aes(colour = "Data", linetype = "Data"), 
+                linewidth = 0.3, se = FALSE) +
+    geom_smooth(method = "loess",
+                aes(y = predict(model, newdata = object),
+                    colour = "Model", linetype = "Model"),
+                linewidth = 0.3, se = FALSE) +
+    scale_colour_manual(name = "", breaks = c("Data", "Model"),
+                        values = c("Data" = "blue", "Model" = "red")) +
+    scale_linetype_manual(name = "", breaks = c("Data", "Model"),
+                          values = c("Data" = "solid", "Model" = "dashed"))
 }
 
 
