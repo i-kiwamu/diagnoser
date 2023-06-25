@@ -4,7 +4,7 @@
 \alias{autoplot.tbl_df_diag}
 \title{autoplot.tbl_df_diag}
 \usage{
-\method{autoplot}{tbl_df_diag}(object, type = "rf", formula = NULL, ...)
+\method{autoplot}{tbl_df_diag}(object, type = "mf", formula = NULL, ...)
 }
 \description{
 autoplot.tbl_df_diag

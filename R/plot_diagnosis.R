@@ -32,7 +32,7 @@ p2star <- function(p)
 #' @importFrom cli cli_alert_danger
 #' @importFrom glue glue
 #' @export
-autoplot.tbl_df_diag <- function(object, type = "rf", formula = NULL, ...) {
+autoplot.tbl_df_diag <- function(object, type = "mf", formula = NULL, ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
     plot_measured_fitted(object, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
@@ -71,7 +71,7 @@ plot_measured_fitted <- function(object, ...) {
     geom_point(shape = 1)
   if (nrow(df_repel) > 1) {
     p <- p +
-      geom_text_repel(aes(label = .rownames))
+      geom_text_repel(data = df_repel, aes(label = .rownames))
   }
   return(p)
 }
@@ -89,7 +89,7 @@ plot_resid_fitted <- function(object, ...) {
                 linewidth = 0.3)
   if (nrow(df_repel) > 1) {
     p <- p +
-      geom_text_repel(aes(label = .rownames))
+      geom_text_repel(data = df_repel, aes(label = .rownames))
   }
   return(p)
 }
@@ -106,7 +106,7 @@ plot_qq <- function(object, ...) {
     geom_qq_line(linewidth = 0.3)
   if (nrow(df_repel) > 1) {
     p <- p +
-      geom_text_repel(aes(label = .rownames))
+      geom_text_repel(data = df_repel, aes(label = .rownames))
   }
   return(p)
 }
@@ -124,7 +124,7 @@ plot_scale_location <- function(object, ...) {
                 linewidth = 0.3)
   if (nrow(df_repel) > 1) {
     p <- p +
-      geom_text_repel(aes(label = .rownames))
+      geom_text_repel(data = df_repel, aes(label = .rownames))
   }
   return(p)
 }
@@ -143,7 +143,7 @@ plot_cooksd <- function(object, ...) {
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3)
   if (nrow(df_repel) > 1) {
     p <- p +
-      geom_text_repel(aes(label = .rownames))
+      geom_text_repel(data = df_repel, aes(label = .rownames))
   }
   return(p)
 }
