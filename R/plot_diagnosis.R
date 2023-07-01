@@ -49,7 +49,7 @@ autoplot.tbl_df_diag <-
   if(is.element(type, c("mf", "measured-fitted"))) {
     plot_measured_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
-    plot_resid_fitted(object, mapping = mapping, ...)
+    plot_resid_fitted(object, formula = formula, mapping = mapping, ...)
   } else if(is.element(type, c("qq"))) {
     plot_qq(object, mapping = mapping, ...)
   } else if(is.element(type, c("sl", "scale-location"))) {
@@ -60,6 +60,8 @@ autoplot.tbl_df_diag <-
     plot_marginal_model(object, formula = formula, mapping = mapping, ...)
   } else if(is.element(type, c("av", "added-variable"))) {
     plot_added_variable(object, formula = formula, mapping = mapping, ...)
+  } else if(is.element(type, c("cr", "component-plus-residual"))) {
+    plot_component_residual(object, formula = formula, mapping = mapping, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -98,11 +100,16 @@ plot_measured_fitted <- function(object, mapping, ...) {
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 #' @importFrom ggrepel geom_text_repel
-plot_resid_fitted <- function(object, mapping, ...) {
-  mapping_new <- update_aes(aes(.fitted, .std.resid, label = label), mapping)
+plot_resid_fitted <- function(object, formula, mapping, ...) {
+  if (is.null(formula)) {
+    formula <- ~ .fitted
+  }
+  mapping_new <- update_aes(aes(!! formula[[2]], .std.resid, label = label),
+                            mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
-    geom_smooth(method = "loess", colour = "red", se = FALSE,
+    geom_smooth(method = "loess", formula = y ~ x,
+                colour = "red", se = FALSE,
                 linewidth = 0.3) +
     geom_text_repel()
 }
@@ -126,7 +133,8 @@ plot_scale_location <- function(object, mapping, ...) {
                             mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
-    geom_smooth(method = "loess", colour = "red", se = FALSE,
+    geom_smooth(method = "loess", formula = y ~ x,
+                colour = "red", se = FALSE,
                 linewidth = 0.3) +
     geom_text_repel()
 }
@@ -149,9 +157,9 @@ plot_cooksd <- function(object, mapping, ...) {
 
 
 #' plot_marginal_model
-#' @importFrom ggplot2 ggplot aes geom_point geom_smooth
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom cli cli_alert_danger
-plot_marginal_model <- function(object, mapping, formula, ...) {
+plot_marginal_model <- function(object, formula, mapping, ...) {
   if (is.null(formula)) {
     cli_alert_danger("Argument formula is required!")
   }
@@ -170,10 +178,10 @@ plot_marginal_model <- function(object, mapping, formula, ...) {
   mapping_new <- update_aes(aes(!! explanatory, !! resp), mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
-    geom_smooth(method = "loess",
+    geom_smooth(method = "loess", formula = y ~ x,
                 aes(colour = "Data", linetype = "Data"), 
                 linewidth = 0.3, se = FALSE) +
-    geom_smooth(method = "loess",
+    geom_smooth(method = "loess", formula = y ~ x,
                 aes(y = predict(model, newdata = object),
                     colour = "Model", linetype = "Model"),
                 linewidth = 0.3, se = FALSE) +
@@ -189,7 +197,7 @@ plot_marginal_model <- function(object, mapping, formula, ...) {
 #' @importFrom tibble tibble
 #' @importFrom stats update
 #' @importFrom cli cli_alert_danger
-plot_added_variable <- function(object, mapping, formula, ...) {
+plot_added_variable <- function(object, formula, mapping, ...) {
   if (is.null(formula)) {
     cli_alert_danger("Argument formula is required!")
   }
@@ -219,4 +227,41 @@ plot_added_variable <- function(object, mapping, formula, ...) {
                 linewidth = 0.3) +
     labs(x = paste(explanatory, "| others"),
          y = paste(resp, "| others"))
+}
+
+
+#' plot_component_residual
+#' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
+#' @importFrom cli cli_alert_danger
+plot_component_residual <- function(object, formula, mapping, ...) {
+  if (is.null(formula)) {
+    cli_alert_danger("Argument formula is required!")
+  }
+  if (length(formula[[2]]) != 1) {
+    cli_alert_danger("Argument formula requires one variable!")
+  }
+  model <- attr(object, "model")
+  model_class <- class(model)
+  if (!is.element(model_class, c("aov", "lm"))) {
+    cli_alert_danger("Added-variable plots are available only for aov or lm!")
+  }
+  explanatory <- formula[[2]]
+  coef_sub <- coef(model)[as.character(explanatory)]
+  
+  df_plot <- tibble()
+  mapping_new <- 
+    update_aes(aes(!! explanatory, .resid + coef_sub * !! explanatory),
+               mapping)
+  ggplot(object, mapping_new) +
+    geom_point(shape = 1) +
+    geom_smooth(method = "loess", formula = y ~ x,
+                aes(colour = "Data", linetype = "Data"),
+                se = FALSE, linewidth = 0.3) +
+    geom_abline(intercept = 0, slope = coef_sub,
+                # aes(colour = "Model", linetype = "Model"),
+                linewidth = 0.3,) +
+    scale_colour_manual(name = "", breaks = c("Data", "Model"),
+                        values = c("Data" = "blue", "Model" = "red")) +
+    scale_linetype_manual(name = "", breaks = c("Data", "Model"),
+                          values = c("Data" = "solid", "Model" = "dashed"))
 }
