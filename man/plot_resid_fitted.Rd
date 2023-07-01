@@ -4,7 +4,7 @@
 \alias{plot_resid_fitted}
 \title{plot_resid_fitted}
 \usage{
-plot_resid_fitted(object, formula, mapping, ...)
+plot_resid_fitted(object, mapping, ...)
 }
 \description{
 plot_resid_fitted

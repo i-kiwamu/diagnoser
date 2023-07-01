@@ -4,7 +4,7 @@
 \alias{plot.tbl_df_diag}
 \title{plot.tbl_df_diag}
 \usage{
-\method{plot}{tbl_df_diag}(x, type = "mf", formula = NULL, mapping = NULL, ...)
+\method{plot}{tbl_df_diag}(x, type = "mf", mapping = NULL, ...)
 }
 \description{
 plot.tbl_df_diag

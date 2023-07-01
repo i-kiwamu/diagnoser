@@ -45,11 +45,11 @@ update_aes <- function(mapping_orig, mapping_new) {
 #' @importFrom glue glue
 #' @export
 autoplot.tbl_df_diag <-
-  function(object, type = "mf", formula = NULL, mapping = NULL, ...) {
+  function(object, type = "mf", mapping = NULL, ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
     plot_measured_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
-    plot_resid_fitted(object, formula = formula, mapping = mapping, ...)
+    plot_resid_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("qq"))) {
     plot_qq(object, mapping = mapping, ...)
   } else if(is.element(type, c("sl", "scale-location"))) {
@@ -57,11 +57,11 @@ autoplot.tbl_df_diag <-
   } else if(is.element(type, c("cook", "cooks-distance"))) {
     plot_cooksd(object, mapping = mapping, ...)
   } else if(is.element(type, c("mm", "marginal-model"))) {
-    plot_marginal_model(object, formula = formula, mapping = mapping, ...)
+    plot_marginal_model(object, mapping = mapping, ...)
   } else if(is.element(type, c("av", "added-variable"))) {
-    plot_added_variable(object, formula = formula, mapping = mapping, ...)
+    plot_added_variable(object, mapping = mapping, ...)
   } else if(is.element(type, c("cr", "component-plus-residual"))) {
-    plot_component_residual(object, formula = formula, mapping = mapping, ...)
+    plot_component_residual(object, mapping = mapping, ...)
   } else {
     cli_alert_danger(glue("The type of {type} is not available!"))
   }
@@ -72,10 +72,8 @@ autoplot.tbl_df_diag <-
 #' @importFrom graphics plot
 #' @export
 plot.tbl_df_diag <-
-  function(x, type = "mf", formula = NULL, mapping = NULL, ...) {
-  print(autoplot.tbl_df_diag(
-    x, type = type, formula = formula, mapping = mapping, ...
-  ))
+  function(x, type = "mf", mapping = NULL, ...) {
+  print(autoplot.tbl_df_diag(x, type = type, mapping = mapping, ...))
 }
 
 
@@ -100,11 +98,11 @@ plot_measured_fitted <- function(object, mapping, ...) {
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
 #' @importFrom ggrepel geom_text_repel
-plot_resid_fitted <- function(object, formula, mapping, ...) {
-  if (is.null(formula)) {
-    formula <- ~ .fitted
+plot_resid_fitted <- function(object, mapping, ...) {
+  if (!is.element("x", names(mapping))) {
+    mapping <- update_aes(aes(x = .fitted), mapping)
   }
-  mapping_new <- update_aes(aes(!! formula[[2]], .std.resid, label = label),
+  mapping_new <- update_aes(aes(y = .std.resid, label = label),
                             mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
@@ -159,12 +157,9 @@ plot_cooksd <- function(object, mapping, ...) {
 #' plot_marginal_model
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom cli cli_alert_danger
-plot_marginal_model <- function(object, formula, mapping, ...) {
-  if (is.null(formula)) {
-    cli_alert_danger("Argument formula is required!")
-  }
-  if (length(formula[[2]]) != 1) {
-    cli_alert_danger("Argument formula requires one variable!")
+plot_marginal_model <- function(object, mapping, ...) {
+  if (!is.element("x", names(mapping))) {
+    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
   }
   model <- attr(object, "model")
   model_class <- class(model)
@@ -173,9 +168,8 @@ plot_marginal_model <- function(object, formula, mapping, ...) {
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  explanatory <- formula[[2]]
   
-  mapping_new <- update_aes(aes(!! explanatory, !! resp), mapping)
+  mapping_new <- update_aes(aes(y = !! resp), mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
@@ -193,16 +187,14 @@ plot_marginal_model <- function(object, formula, mapping, ...) {
 
 
 #' plot_added_variable
-#' @importFrom ggplot2 ggplot aes geom_point geom_abline
+#' @importFrom ggplot2 ggplot aes geom_point geom_abline labs
 #' @importFrom tibble tibble
 #' @importFrom stats update
+#' @importFrom rlang as_label sym
 #' @importFrom cli cli_alert_danger
-plot_added_variable <- function(object, formula, mapping, ...) {
-  if (is.null(formula)) {
-    cli_alert_danger("Argument formula is required!")
-  }
-  if (length(formula[[2]]) != 1) {
-    cli_alert_danger("Argument formula requires one variable!")
+plot_added_variable <- function(object, mapping, ...) {
+  if (!is.element("x", names(mapping))) {
+    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
   }
   
   model <- attr(object, "model")
@@ -210,48 +202,48 @@ plot_added_variable <- function(object, formula, mapping, ...) {
   if (!is.element(model_class, c("aov", "lm"))) {
     cli_alert_danger("Added-variable plots are available only for aov or lm!")
   }
-  explanatory <- formula[[2]]
-  which_coef <- c("(Intercept)", as.character(explanatory))
+  x_label <- as_label(mapping$x)
+  which_coef <- c("(Intercept)", x_label)
   
   resp <- model$terms[[2]]
   coef_sub <- coef(model)[which_coef]
 
-  model1 <- update(model, substitute(~ . - a, list(a = explanatory)))
-  model2 <- update(model1, substitute(a ~ ., list(a = explanatory)))
+  x_sym <- sym(x_label)
+  model1 <- update(model, substitute(~ . - a, list(a = x_sym)))
+  model2 <- update(model1, substitute(a ~ ., list(a = x_sym)))
   
-  mapping_new <- update_aes(aes(x = x, y = y), mapping)
+  mapping_new <- update_aes(mapping, aes(x = x, y = y))
   df_plot <- tibble(x = residuals(model2), y = residuals(model1))
   ggplot(df_plot, mapping_new) +
     geom_point(shape = 1) +
     geom_abline(intercept = coef_sub[1L], slope = coef_sub[2L],
                 linewidth = 0.3) +
-    labs(x = paste(explanatory, "| others"),
+    labs(x = paste(x_label, "| others"),
          y = paste(resp, "| others"))
 }
 
 
 #' plot_component_residual
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
+#' @importFrom rlang as_label sym
 #' @importFrom cli cli_alert_danger
-plot_component_residual <- function(object, formula, mapping, ...) {
-  if (is.null(formula)) {
-    cli_alert_danger("Argument formula is required!")
-  }
-  if (length(formula[[2]]) != 1) {
-    cli_alert_danger("Argument formula requires one variable!")
+plot_component_residual <- function(object, mapping, ...) {
+  if (!is.element("x", names(mapping))) {
+    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
   }
   model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
     cli_alert_danger("Added-variable plots are available only for aov or lm!")
   }
-  explanatory <- formula[[2]]
-  coef_sub <- coef(model)[as.character(explanatory)]
+  x_label <- as_label(mapping$x)
+  coef_sub <- coef(model)[x_label]
+  x_sym <- sym(x_label)
   
-  df_plot <- tibble()
   mapping_new <- 
-    update_aes(aes(!! explanatory, .resid + coef_sub * !! explanatory),
-               mapping)
+    update_aes(mapping,
+               aes(x = !! x_sym,
+                   y = .resid + coef_sub * !! x_sym))
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,

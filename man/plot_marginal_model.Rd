@@ -4,7 +4,7 @@
 \alias{plot_marginal_model}
 \title{plot_marginal_model}
 \usage{
-plot_marginal_model(object, formula, mapping, ...)
+plot_marginal_model(object, mapping, ...)
 }
 \description{
 plot_marginal_model
