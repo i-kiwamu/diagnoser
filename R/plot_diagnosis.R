@@ -39,9 +39,25 @@ update_aes <- function(mapping_orig, mapping_new) {
 }
 
 
+#' ignore_x_aes
+#' @importFrom cli cli_alert_info
+ignore_x_aes <- function(mapping) {
+  cli_alert_info("`x` is specified in aes(), but ignored...")
+  mapping[names(mapping) != "x"]
+}
+
+
+#' ignore_y_aes
+#' @importFrom cli cli_alert_info
+ignore_y_aes <- function(mapping) {
+  cli_alert_info("`y` is specified in aes(), but ignored...")
+  mapping[names(mapping) != "y"]
+}
+
+
 #' autoplot.tbl_df_diag
 #' @importFrom ggplot2 autoplot
-#' @importFrom cli cli_alert_danger
+#' @importFrom cli cli_abort
 #' @importFrom glue glue
 #' @export
 autoplot.tbl_df_diag <-
@@ -63,7 +79,7 @@ autoplot.tbl_df_diag <-
   } else if(is.element(type, c("cr", "component-plus-residual"))) {
     plot_component_residual(object, mapping = mapping, ...)
   } else {
-    cli_alert_danger(glue("The type of {type} is not available!"))
+    cli_abort(glue("The type of {type} is not available!"))
   }
 }
 
@@ -81,6 +97,9 @@ plot.tbl_df_diag <-
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
 plot_measured_fitted <- function(object, mapping, ...) {
+  mapping <- ignore_x_aes(mapping)
+  mapping <- ignore_y_aes(mapping)
+
   model <- attr(object, "model")
   model_class <- class(model)
   if (is.element(model_class, c("aov", "lm", "lme"))) {
@@ -88,34 +107,49 @@ plot_measured_fitted <- function(object, mapping, ...) {
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  mapping_new <- update_aes(aes(.fitted, !! resp, label = label), mapping)
+  mapping_new <- update_aes(aes(.fitted, !! resp), mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
-    geom_text_repel()
+    geom_text_repel(aes(label = label))
 }
 
 
 #' plot_resid_fitted
-#' @importFrom ggplot2 ggplot aes geom_point geom_smooth 
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_boxplot
 #' @importFrom ggrepel geom_text_repel
 plot_resid_fitted <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
-    mapping <- update_aes(aes(x = .fitted), mapping)
+    mapping <- update_aes(mapping, aes(x = .fitted))
   }
-  mapping_new <- update_aes(aes(y = .std.resid, label = label),
-                            mapping)
-  ggplot(object, mapping_new) +
-    geom_point(shape = 1) +
-    geom_smooth(method = "loess", formula = y ~ x,
-                colour = "red", se = FALSE,
-                linewidth = 0.3) +
-    geom_text_repel()
+  mapping <- ignore_y_aes(mapping)
+  x_label <- as_label(mapping$x)
+  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  if (!is.element(x_label, names(data_classes))) {
+    cli_abort(glue("{x_label} is not found in the model!"))
+  }
+  x_type <- data_classes[x_label]
+  
+  mapping_new <- update_aes(mapping, aes(y = .std.resid))
+  
+  if (x_type == "numeric") {
+    ggplot(object, mapping_new) +
+      geom_point(shape = 1) +
+      geom_smooth(method = "loess", formula = y ~ x,
+                  colour = "red", se = FALSE,
+                  linewidth = 0.3) +
+      geom_text_repel(aes(label = label))
+  } else {
+    ggplot(object, mapping_new) +
+      geom_boxplot(linewidth = 0.3)
+  }
 }
 
 
 #' plot_qq
 #' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
 plot_qq <- function(object, mapping, ...) {
+  mapping <- ignore_x_aes(mapping)
+  mapping <- ignore_y_aes(mapping)
   mapping_new <- update_aes(aes(sample = .resid), mapping)
   ggplot(object, mapping_new) +
     geom_qq(shape = 1) +
@@ -127,14 +161,16 @@ plot_qq <- function(object, mapping, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
 plot_scale_location <- function(object, mapping, ...) {
-  mapping_new <- update_aes(aes(.fitted, .std.resid_abs_sqrt, label = label),
+  mapping <- ignore_x_aes(mapping)
+  mapping <- ignore_y_aes(mapping)
+  mapping_new <- update_aes(aes(.fitted, .std.resid_abs_sqrt),
                             mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 colour = "red", se = FALSE,
                 linewidth = 0.3) +
-    geom_text_repel()
+    geom_text_repel(aes(label = label))
 }
 
 
@@ -143,24 +179,39 @@ plot_scale_location <- function(object, mapping, ...) {
 #' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
 plot_cooksd <- function(object, mapping, ...) {
-  mapping_new <- update_aes(aes(id, cooksd, label = label), mapping)
+  mapping <- ignore_x_aes(mapping)
+  mapping <- ignore_y_aes(mapping)
+  mapping_new <- update_aes(mapping, aes(id, cooksd))
   object |>
     rowid_to_column(var = "id") |>
     ggplot(mapping_new) +
     geom_point(shape = 1) +
     geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3) +
-    geom_text_repel()
+    geom_text_repel(aes(label = label))
 }
 
 
 #' plot_marginal_model
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
-#' @importFrom cli cli_alert_danger
+#' @importFrom glue glue
+#' @importFrom rlang as_label
+#' @importFrom cli cli_abort
 plot_marginal_model <- function(object, mapping, ...) {
+  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
-    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
+    cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
+  x_label <- as_label(mapping$x)
+  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  if (!is.element(x_label, names(data_classes))) {
+    cli_abort(glue("{x_label} is not found in the model!"))
+  }
+  x_type <- data_classes[x_label]
+  if (x_type != "numeric") {
+    cli_abort(glue("Type of {x_label} needs to be numeric!"))
+  }
+  
   model <- attr(object, "model")
   model_class <- class(model)
   if (is.element(model_class, c("aov", "lm", "lme"))) {
@@ -169,7 +220,7 @@ plot_marginal_model <- function(object, mapping, ...) {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
   
-  mapping_new <- update_aes(aes(y = !! resp), mapping)
+  mapping_new <- update_aes(mapping, aes(y = !! resp))
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
@@ -191,18 +242,27 @@ plot_marginal_model <- function(object, mapping, ...) {
 #' @importFrom tibble tibble
 #' @importFrom stats update
 #' @importFrom rlang as_label sym
-#' @importFrom cli cli_alert_danger
+#' @importFrom cli cli_abort
 plot_added_variable <- function(object, mapping, ...) {
+  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
-    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
+    cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
+  }
+  x_label <- as_label(mapping$x)
+  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  if (!is.element(x_label, names(data_classes))) {
+    cli_abort(glue("{x_label} is not found in the model!"))
+  }
+  x_type <- data_classes[x_label]
+  if (x_type != "numeric") {
+    cli_abort(glue("Type of {x_label} needs to be numeric!"))
   }
   
   model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
-    cli_alert_danger("Added-variable plots are available only for aov or lm!")
+    cli_abort("Added-variable plots are available only for aov or lm!")
   }
-  x_label <- as_label(mapping$x)
   which_coef <- c("(Intercept)", x_label)
   
   resp <- model$terms[[2]]
@@ -226,15 +286,26 @@ plot_added_variable <- function(object, mapping, ...) {
 #' plot_component_residual
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom rlang as_label sym
-#' @importFrom cli cli_alert_danger
+#' @importFrom cli cli_abort
 plot_component_residual <- function(object, mapping, ...) {
+  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
-    cli_alert_danger("Specify `x` argument of `aes` for `mapping` argument!")
+    cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
+  x_label <- as_label(mapping$x)
+  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  if (!is.element(x_label, names(data_classes))) {
+    cli_abort(glue("{x_label} is not found in the model!"))
+  }
+  x_type <- data_classes[x_label]
+  if (x_type != "numeric") {
+    cli_abort(glue("Type of {x_label} needs to be numeric!"))
+  }
+  
   model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
-    cli_alert_danger("Added-variable plots are available only for aov or lm!")
+    cli_abort("Added-variable plots are available only for aov or lm!")
   }
   x_label <- as_label(mapping$x)
   coef_sub <- coef(model)[x_label]
