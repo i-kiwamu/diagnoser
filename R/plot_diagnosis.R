@@ -188,8 +188,6 @@ plot_marginal_model <- function(object, mapping, formula, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline
 #' @importFrom tibble tibble
 #' @importFrom stats update
-#' @importFrom nlme lme lme.formula fixef
-#' @importFrom lme4 lmer fixef
 #' @importFrom cli cli_alert_danger
 plot_added_variable <- function(object, mapping, formula, ...) {
   if (is.null(formula)) {
@@ -201,20 +199,15 @@ plot_added_variable <- function(object, mapping, formula, ...) {
   
   model <- attr(object, "model")
   model_class <- class(model)
+  if (!is.element(model_class, c("aov", "lm"))) {
+    cli_alert_danger("Added-variable plots are available only for aov or lm!")
+  }
   explanatory <- formula[[2]]
   which_coef <- c("(Intercept)", as.character(explanatory))
   
-  if (is.element(model_class, c("aov", "lm"))) {
-    resp <- model$terms[[2]]
-    coef_sub <- coef(model)[which_coef]
-  } else if (model_class == "lme") {
-    resp <- model$terms[[2]]
-    coef_sub <- nlme::fixef(model)[which_coef]
-  } else if (model_class == "lmerMod") {
-    resp <- attr(slot(model, "frame"), "terms")[[2]]
-    coef_sub <- lme4::fixef(model)[which_coef]
-  }
-  
+  resp <- model$terms[[2]]
+  coef_sub <- coef(model)[which_coef]
+
   model1 <- update(model, substitute(~ . - a, list(a = explanatory)))
   model2 <- update(model1, substitute(a ~ ., list(a = explanatory)))
   
