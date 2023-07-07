@@ -4,7 +4,7 @@
 \alias{plot_component_residual}
 \title{plot_component_residual}
 \usage{
-plot_component_residual(object, formula, mapping, ...)
+plot_component_residual(object, mapping, ...)
 }
 \description{
 plot_component_residual

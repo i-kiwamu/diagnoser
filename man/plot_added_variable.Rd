@@ -4,7 +4,7 @@
 \alias{plot_added_variable}
 \title{plot_added_variable}
 \usage{
-plot_added_variable(object, formula, mapping, ...)
+plot_added_variable(object, mapping, ...)
 }
 \description{
 plot_added_variable
