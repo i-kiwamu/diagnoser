@@ -4,10 +4,12 @@
 \alias{new_tibble_diag}
 \title{Create a object of tbl_df_diag, subclass of tibble}
 \usage{
-new_tibble_diag(x, model)
+new_tibble_diag(x, xg, model)
 }
 \arguments{
-\item{x}{tibble object}
+\item{x}{tibble object (level = 1)}
+
+\item{xg}{tibble object of higher levels}
 
 \item{model}{model object}
 }

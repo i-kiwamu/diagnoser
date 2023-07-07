@@ -4,7 +4,7 @@
 \alias{plot_qq}
 \title{plot_qq}
 \usage{
-plot_qq(object, mapping, ...)
+plot_qq(object, mapping, level = 1, ...)
 }
 \description{
 plot_qq

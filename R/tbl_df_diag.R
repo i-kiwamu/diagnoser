@@ -2,11 +2,13 @@
 
 #' Create a object of tbl_df_diag, subclass of tibble
 #' @importFrom tibble is_tibble
-#' @param x tibble object
+#' @param x tibble object (level = 1)
+#' @param xg tibble object of higher levels
 #' @param model model object
-new_tibble_diag <- function(x, model) {
+new_tibble_diag <- function(x, xg, model) {
   stopifnot(is_tibble(x))
   class(x) <- append("tbl_df_diag", class(x))
+  attr(x, "levels") <- xg
   attr(x, "model") <- model
   return(x)
 }

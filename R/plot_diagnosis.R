@@ -116,12 +116,23 @@ plot_resid_fitted <- function(object, formula, mapping, ...) {
 
 
 #' plot_qq
-#' @importFrom ggplot2 ggplot aes stat_qq stat_qq_line
-plot_qq <- function(object, mapping, ...) {
-  mapping_new <- update_aes(aes(sample = .resid), mapping)
-  ggplot(object, mapping_new) +
-    geom_qq(shape = 1) +
-    geom_qq_line(linewidth = 0.3)
+#' @importFrom ggplot2 ggplot aes geom_qq geom_qq_line
+#' @importFrom cli cli_abort
+plot_qq <- function(object, mapping, level = 1, ...) {
+  if (level == 1) {
+    mapping_new <- update_aes(aes(sample = .resid), mapping)
+    ggplot(object, mapping_new) +
+      geom_qq(shape = 1) +
+      geom_qq_line(linewidth = 0.3)
+  } else {
+    xg <- attr(object, "levels")[[level]]
+    if (!is.element("sample", names(mapping))) {
+      cli_abort("sample is required in aes()!")
+    }
+    ggplot(xg, mapping) +
+      geom_qq(shape = 1) +
+      geom_qq_line(linewidth = 0.3)
+  }
 }
 
 

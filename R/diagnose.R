@@ -29,7 +29,7 @@ diagnose.aov <- function(model) {
   influence <- influence |>
     mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
   
-  return(new_tibble_diag(influence, model))
+  return(new_tibble_diag(influence, NULL, model))
 }
 
 
@@ -51,7 +51,7 @@ diagnose.lm <- function(model) {
   influence <- influence |>
     mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
 
-  return(new_tibble_diag(influence, model))
+  return(new_tibble_diag(influence, NULL, model))
 }
 
 
@@ -71,14 +71,22 @@ diagnose.lme <- function(model) {
   }
   influence <- influence |>
     mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
+  
+  groups <- colnames(model$groups)
+  influence_groups <- list()
+  for(g in groups) {
+    influence_groups[[g]] <- hlm_augment(model, level = g, include.ls = FALSE)
+  }
 
-  return(new_tibble_diag(influence, model))
+  return(new_tibble_diag(influence, infuence_groups, model))
 }
 
 
 #' Diagnose a lmerMod model
 #' @importFrom HLMdiag hlm_augment hlm_resid
-#' @importFrom dplyr mutate rename
+#' @importFrom tibble rownames_to_column
+#' @importFrom dplyr mutate rename left_join
+#' @importFrom lme4 ranef
 #' @param model lmerMod object
 #' @note To diagnose the lmerMod model
 #' @export
@@ -93,5 +101,17 @@ diagnose.lmerMod <- function(model) {
   influence <- influence |>
     mutate(label = ifelse(cooksd > 0.05, .rownames, ""))
   
-  return(new_tibble_diag(influence, model))
+  bs <- ranef(model)
+  groups <- names(slot(model, "flist"))
+  influence_groups <- list()
+  for(g in groups) {
+    b <- rownames_to_column(bs[[g]]) |>
+      rename(group_name = rowname)
+    xg <- hlm_augment(model, level = g, include.ls = FALSE) |>
+      rename(group_name = 1) |>
+      left_join(b, by = "group_name")
+    influence_groups[[g]] <- xg
+  }
+  
+  return(new_tibble_diag(influence, influence_groups, model))
 }
