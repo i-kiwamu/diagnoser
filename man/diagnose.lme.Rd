@@ -7,11 +7,19 @@
 \method{diagnose}{lme}(model)
 }
 \arguments{
-\item{model}{lme object}
+\item{model}{\code{\link[nlme]{lme}} object.}
+}
+\value{
+An object of \code{tbl_df_diag}.
 }
 \description{
 Diagnose a lme model
 }
 \note{
-To diagnose the lme model
+To diagnose the \code{\link[nlme]{lme}} model.
+}
+\examples{
+library(nlme)
+lme_orthodont <- lme(distance ~ age + Sex, Orthodont)
+(diag_orthodont <- diagnose(lme_orthodont))
 }

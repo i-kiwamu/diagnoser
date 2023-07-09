@@ -4,7 +4,16 @@
 \alias{autoplot.tbl_df_diag}
 \title{autoplot.tbl_df_diag}
 \usage{
-autoplot.tbl_df_diag(object, type = "mf", mapping = NULL, ...)
+\method{autoplot}{tbl_df_diag}(object, type = "mf", mapping = aes(), ...)
+}
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{type}{A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+
+\item{...}{currently not to be used.}
 }
 \description{
 autoplot.tbl_df_diag

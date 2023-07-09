@@ -7,11 +7,20 @@
 \method{diagnose}{aov}(model)
 }
 \arguments{
-\item{model}{aov object}
+\item{model}{\code{\link[stats]{aov}} object.}
+}
+\value{
+An object of \code{tbl_df_diag}.
 }
 \description{
 Diagnose a aov model
 }
 \note{
-To diagnose the aov model
+To diagnose the \code{\link[stats]{aov}} model.
+}
+\examples{
+op <- options(contrasts = c("contr.sum", "contr.poly"))
+aov_npk <- aov(yield ~ block + N*P*K, npk)
+(diag_npk <- diagnose(aov_npk))
+options(op)
 }

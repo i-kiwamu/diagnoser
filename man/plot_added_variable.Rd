@@ -6,6 +6,14 @@
 \usage{
 plot_added_variable(object, mapping, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
+}
 \description{
 plot_added_variable
+}
+\note{
+To generate an added-variable plot.
 }

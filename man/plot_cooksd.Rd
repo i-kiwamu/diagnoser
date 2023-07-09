@@ -6,6 +6,14 @@
 \usage{
 plot_cooksd(object, mapping, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+}
 \description{
 plot_cooksd
+}
+\note{
+To visualize the Cook's distance.
 }

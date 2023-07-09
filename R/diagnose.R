@@ -13,9 +13,15 @@ diagnose.default <- function(model, ...)
 #' Diagnose a aov model
 #' @importFrom broom augment
 #' @importFrom dplyr mutate rename
-#' @param model aov object
-#' @note To diagnose the aov model
+#' @param model \code{\link[stats]{aov}} object.
+#' @return An object of \code{tbl_df_diag}.
+#' @note To diagnose the \code{\link[stats]{aov}} model.
 #' @export
+#' @examples
+#' op <- options(contrasts = c("contr.sum", "contr.poly"))
+#' aov_npk <- aov(yield ~ block + N*P*K, npk)
+#' (diag_npk <- diagnose(aov_npk))
+#' options(op)
 diagnose.aov <- function(model) {
   model_lm <- lm(model)
   influence <- augment(model_lm) |>
@@ -36,9 +42,13 @@ diagnose.aov <- function(model) {
 #' Diagnose a lm model
 #' @importFrom broom augment
 #' @importFrom dplyr mutate rename
-#' @param model lm object
-#' @note To diagnose the lm model
+#' @param model \code{\link[stats]{lm}} object.
+#' @return An object of \code{tbl_df_diag}.
+#' @note To diagnose the \code{\link[stats]{lm}} model.
 #' @export
+#' @examples
+#' lm_rock <- lm(perm ~ area + peri + shape, rock)
+#' (diag_rock <- diagnose(aov_rock))
 diagnose.lm <- function(model) {
   influence <- augment(model) |>
     rename(cooksd = .cooksd,
@@ -58,9 +68,14 @@ diagnose.lm <- function(model) {
 #' Diagnose a lme model
 #' @importFrom HLMdiag hlm_augment hlm_resid
 #' @importFrom dplyr mutate rename
-#' @param model lme object
-#' @note To diagnose the lme model
+#' @param model \code{\link[nlme]{lme}} object.
+#' @return An object of \code{tbl_df_diag}.
+#' @note To diagnose the \code{\link[nlme]{lme}} model.
 #' @export
+#' @examples
+#' library(nlme)
+#' lme_orthodont <- lme(distance ~ age + Sex, Orthodont)
+#' (diag_orthodont <- diagnose(lme_orthodont))
 diagnose.lme <- function(model) {
   influence <- hlm_augment(model, include.ls = FALSE) |>
     rename(.rownames = id) |>
@@ -78,7 +93,7 @@ diagnose.lme <- function(model) {
     influence_groups[[g]] <- hlm_augment(model, level = g, include.ls = FALSE)
   }
 
-  return(new_tibble_diag(influence, infuence_groups, model))
+  return(new_tibble_diag(influence, influence_groups, model))
 }
 
 
@@ -87,9 +102,15 @@ diagnose.lme <- function(model) {
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr mutate rename left_join
 #' @importFrom lme4 ranef
-#' @param model lmerMod object
-#' @note To diagnose the lmerMod model
+#' @param model \code{lmerMod} object.
+#' @return An object of \code{tbl_df_diag}.
+#' @note To diagnose the \code{lmerMod} model.
 #' @export
+#' @examples
+#' library(lme4)
+#' lmer_orthodont <- lmer(distance ~ age + Sex + (age + Sex | Subject),
+#'                        data = nlme::Orthodont)
+#' (diag_orthodont <- diagnose(lmer_orthodont))
 diagnose.lmerMod <- function(model) {
   influence <- hlm_augment(model, include.ls = FALSE) |>
     rename(.rownames = id) |>

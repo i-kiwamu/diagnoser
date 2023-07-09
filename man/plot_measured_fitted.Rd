@@ -6,6 +6,14 @@
 \usage{
 plot_measured_fitted(object, mapping, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+}
 \description{
 plot_measured_fitted
+}
+\note{
+To generate a scatter plot of measured vs fitted values.
 }

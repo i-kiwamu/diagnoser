@@ -6,6 +6,16 @@
 \usage{
 plot_qq(object, mapping, level = 1, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+
+\item{level}{A character of level for mixed-effects models (default = 1). See \code{\link[HLMdiag]{hlm_influence}}.}
+}
 \description{
 plot_qq
+}
+\note{
+To generate a QQ plot.
 }

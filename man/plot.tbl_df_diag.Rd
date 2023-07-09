@@ -4,8 +4,46 @@
 \alias{plot.tbl_df_diag}
 \title{plot.tbl_df_diag}
 \usage{
-\method{plot}{tbl_df_diag}(x, type = "mf", mapping = NULL, ...)
+\method{plot}{tbl_df_diag}(x, type = "mf", mapping = aes(), ...)
+}
+\arguments{
+\item{type}{A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+
+\item{...}{currently not to be used.}
+
+\item{object}{An object of \code{tbl_df_diag}.}
 }
 \description{
 plot.tbl_df_diag
+}
+\examples{
+library(ggplot2)
+library(nlme)
+lme_od <- lme(distance ~ age + Sex, Orthodont)
+diag_od <- diagnose(lme_od)
+# measured-fitted plot
+plot(diag_od)
+
+# residual-fitted plot
+plot(diag_od, type = "rf")
+
+# QQ plot
+plot(diag_od, type = "qq")
+
+# scale-location plot
+plot(diag_od, type = "sl")
+
+# Cook's distance
+plot(diag_od, type = "cook")
+
+# marginal-model plot
+plot(diag_od, type = "mm", mapping = aes(x = age))
+
+# added-variable plot
+plot(diag_od, type = "av", mapping = aes(x = age))
+
+# component-plus-residual plot
+plot(diag_od, type = "cr", mapping = aes(x = age))
 }

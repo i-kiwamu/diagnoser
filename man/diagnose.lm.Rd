@@ -7,11 +7,18 @@
 \method{diagnose}{lm}(model)
 }
 \arguments{
-\item{model}{lm object}
+\item{model}{\code{\link[stats]{lm}} object.}
+}
+\value{
+An object of \code{tbl_df_diag}.
 }
 \description{
 Diagnose a lm model
 }
 \note{
-To diagnose the lm model
+To diagnose the \code{\link[stats]{lm}} model.
+}
+\examples{
+lm_rock <- lm(perm ~ area + peri + shape, rock)
+(diag_rock <- diagnose(aov_rock))
 }

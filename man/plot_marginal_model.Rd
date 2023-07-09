@@ -6,6 +6,14 @@
 \usage{
 plot_marginal_model(object, mapping, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
+}
 \description{
 plot_marginal_model
+}
+\note{
+To generate a marginal-model plot.
 }

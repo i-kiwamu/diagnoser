@@ -6,6 +6,14 @@
 \usage{
 plot_resid_fitted(object, mapping, ...)
 }
+\arguments{
+\item{object}{An object of \code{tbl_df_diag}.}
+
+\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+}
 \description{
 plot_resid_fitted
+}
+\note{
+To generate a scatter plot of fitted values vs studentized residuals.
 }

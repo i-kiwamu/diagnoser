@@ -7,11 +7,20 @@
 \method{diagnose}{lmerMod}(model)
 }
 \arguments{
-\item{model}{lmerMod object}
+\item{model}{\code{lmerMod} object.}
+}
+\value{
+An object of \code{tbl_df_diag}.
 }
 \description{
 Diagnose a lmerMod model
 }
 \note{
-To diagnose the lmerMod model
+To diagnose the \code{lmerMod} model.
+}
+\examples{
+library(lme4)
+lmer_orthodont <- lmer(distance ~ age + Sex + (age + Sex | Subject),
+                       data = nlme::Orthodont)
+(diag_orthodont <- diagnose(lmer_orthodont))
 }

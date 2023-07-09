@@ -1,32 +1,3 @@
-#' Conversion from P-value to expression
-#' @param p P-value
-#' @return a vector of character of expression.
-#' @examples
-#' p <- c(1e-05, 0.002, 0.03, 0.4)
-#' p2lt(p)
-#' @export
-p2lt <- function(p)
-  ifelse(!is.finite(p), NA,
-         ifelse(p < 0.001, as.character(expression(italic(P) < 0.001)),
-                ifelse(p < 0.01, as.character(expression(italic(P) < 0.01)),
-                       ifelse(p < 0.05, as.character(expression(italic(P) < 0.05)),
-                              as.character(expression(italic(P) == round(p, 2)))))))
-
-
-#' Conversion from P-value to stars
-#' @param p P-value
-#' @return a vector of character of asterisks or ns
-#' @examples
-#' p <- c(1e-05, 0.002, 0.03, 0.4)
-#' p2star(p)
-#' @export
-p2star <- function(p)
-  ifelse(!is.finite(p), NA,
-         ifelse(p < 0.001, "***",
-                ifelse(p < 0.01, "**",
-                       ifelse(p < 0.05, "*", "ns"))))
-
-
 #' update_aes
 update_aes <- function(mapping_orig, mapping_new) {
   result <- mapping_orig
@@ -59,9 +30,13 @@ ignore_y_aes <- function(mapping) {
 #' @importFrom ggplot2 autoplot
 #' @importFrom cli cli_abort
 #' @importFrom glue glue
+#' @param object An object of \code{tbl_df_diag}.
+#' @param type A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param ... currently not to be used.
 #' @export
 autoplot.tbl_df_diag <-
-  function(object, type = "mf", mapping = NULL, ...) {
+  function(object, type = "mf", mapping = aes(), ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
     plot_measured_fitted(object, mapping = mapping, ...)
   } else if(is.element(type, c("rf", "resid-fitted"))) {
@@ -86,9 +61,42 @@ autoplot.tbl_df_diag <-
 
 #' plot.tbl_df_diag
 #' @importFrom graphics plot
+#' @param object An object of \code{tbl_df_diag}.
+#' @param type A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param ... currently not to be used.
 #' @export
+#' @examples
+#' library(ggplot2)
+#' library(nlme)
+#' lme_od <- lme(distance ~ age + Sex, Orthodont)
+#' diag_od <- diagnose(lme_od)
+# '
+#' # measured-fitted plot
+#' plot(diag_od)
+#' 
+#' # residual-fitted plot
+#' plot(diag_od, type = "rf")
+#' 
+#' # QQ plot
+#' plot(diag_od, type = "qq")
+#' 
+#' # scale-location plot
+#' plot(diag_od, type = "sl")
+#' 
+#' # Cook's distance
+#' plot(diag_od, type = "cook")
+#' 
+#' # marginal-model plot
+#' plot(diag_od, type = "mm", mapping = aes(x = age))
+#' 
+#' # added-variable plot
+#' plot(diag_od, type = "av", mapping = aes(x = age))
+#' 
+#' # component-plus-residual plot
+#' plot(diag_od, type = "cr", mapping = aes(x = age))
 plot.tbl_df_diag <-
-  function(x, type = "mf", mapping = NULL, ...) {
+  function(x, type = "mf", mapping = aes(), ...) {
   print(autoplot.tbl_df_diag(x, type = type, mapping = mapping, ...))
 }
 
@@ -96,9 +104,15 @@ plot.tbl_df_diag <-
 #' plot_measured_fitted
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @note To generate a scatter plot of measured vs fitted values.
 plot_measured_fitted <- function(object, mapping, ...) {
-  mapping <- ignore_x_aes(mapping)
-  mapping <- ignore_y_aes(mapping)
+  if (is.element("x", names(mapping)))
+    mapping <- ignore_x_aes(mapping)
+  
+  if (is.element("y", names(mapping)))
+    mapping <- ignore_y_aes(mapping)
 
   model <- attr(object, "model")
   model_class <- class(model)
@@ -117,18 +131,25 @@ plot_measured_fitted <- function(object, mapping, ...) {
 #' plot_resid_fitted
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_boxplot
 #' @importFrom ggrepel geom_text_repel
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @note To generate a scatter plot of fitted values vs studentized residuals.
 plot_resid_fitted <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
     mapping <- update_aes(mapping, aes(x = .fitted))
+    x_type <- "numeric"
+  } else {
+    x_label <- as_label(mapping$x)
+    data_classes <- attr(attr(object, "terms"), "dataClasses")
+    if (!is.element(x_label, names(data_classes))) {
+      cli_abort(glue("{x_label} is not found in the model!"))
+    }
+    x_type <- data_classes[x_label]
   }
-  mapping <- ignore_y_aes(mapping)
-  x_label <- as_label(mapping$x)
-  data_classes <- attr(attr(object, "terms"), "dataClasses")
-  if (!is.element(x_label, names(data_classes))) {
-    cli_abort(glue("{x_label} is not found in the model!"))
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
   }
-  x_type <- data_classes[x_label]
-  
+
   mapping_new <- update_aes(mapping, aes(y = .std.resid))
   
   if (x_type == "numeric") {
@@ -148,9 +169,18 @@ plot_resid_fitted <- function(object, mapping, ...) {
 #' plot_qq
 #' @importFrom ggplot2 ggplot aes geom_qq geom_qq_line
 #' @importFrom cli cli_abort
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param level A character of level for mixed-effects models (default = 1). See \code{\link[HLMdiag]{hlm_influence}}.
+#' @note To generate a QQ plot.
 plot_qq <- function(object, mapping, level = 1, ...) {
-  mapping <- ignore_x_aes(mapping)
-  mapping <- ignore_y_aes(mapping)
+  if (is.element("x", names(mapping))) {
+    mapping <- ignore_x_aes(mapping)
+  }
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
+
   if (level == 1) {
     mapping_new <- update_aes(aes(sample = .resid), mapping)
     ggplot(object, mapping_new) +
@@ -171,9 +201,17 @@ plot_qq <- function(object, mapping, level = 1, ...) {
 #' plot_scale_location
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @note To generate a Scale-Location plot.
 plot_scale_location <- function(object, mapping, ...) {
-  mapping <- ignore_x_aes(mapping)
-  mapping <- ignore_y_aes(mapping)
+  if (is.element("x", names(mapping))) {
+    mapping <- ignore_x_aes(mapping)
+  }
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
+
   mapping_new <- update_aes(aes(.fitted, .std.resid_abs_sqrt),
                             mapping)
   ggplot(object, mapping_new) +
@@ -189,9 +227,16 @@ plot_scale_location <- function(object, mapping, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @note To visualize the Cook's distance.
 plot_cooksd <- function(object, mapping, ...) {
-  mapping <- ignore_x_aes(mapping)
-  mapping <- ignore_y_aes(mapping)
+  if (is.element("x", names(mapping))) {
+    mapping <- ignore_x_aes(mapping)
+  }
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
   mapping_new <- update_aes(mapping, aes(id, cooksd))
   object |>
     rowid_to_column(var = "id") |>
@@ -208,8 +253,10 @@ plot_cooksd <- function(object, mapping, ...) {
 #' @importFrom glue glue
 #' @importFrom rlang as_label
 #' @importFrom cli cli_abort
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @note To generate a marginal-model plot.
 plot_marginal_model <- function(object, mapping, ...) {
-  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
@@ -223,6 +270,9 @@ plot_marginal_model <- function(object, mapping, ...) {
     cli_abort(glue("Type of {x_label} needs to be numeric!"))
   }
   
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
   model <- attr(object, "model")
   model_class <- class(model)
   if (is.element(model_class, c("aov", "lm", "lme"))) {
@@ -254,8 +304,10 @@ plot_marginal_model <- function(object, mapping, ...) {
 #' @importFrom stats update
 #' @importFrom rlang as_label sym
 #' @importFrom cli cli_abort
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @note To generate an added-variable plot.
 plot_added_variable <- function(object, mapping, ...) {
-  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
@@ -269,6 +321,9 @@ plot_added_variable <- function(object, mapping, ...) {
     cli_abort(glue("Type of {x_label} needs to be numeric!"))
   }
   
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
   model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
@@ -298,8 +353,10 @@ plot_added_variable <- function(object, mapping, ...) {
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom rlang as_label sym
 #' @importFrom cli cli_abort
+#' @param object An object of \code{tbl_df_diag}.
+#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @note To generate a component-plus-residual plot.
 plot_component_residual <- function(object, mapping, ...) {
-  mapping <- ignore_y_aes(mapping)
   if (!is.element("x", names(mapping))) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
@@ -313,6 +370,9 @@ plot_component_residual <- function(object, mapping, ...) {
     cli_abort(glue("Type of {x_label} needs to be numeric!"))
   }
   
+  if (is.element("y", names(mapping))) {
+    mapping <- ignore_y_aes(mapping)
+  }
   model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
