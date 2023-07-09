@@ -35,6 +35,7 @@ ignore_y_aes <- function(mapping) {
 #' @param mapping An \code{\link[ggplot2]{aes()}} object.
 #' @param ... currently not to be used.
 #' @export
+#' @rdname plot.tbl_df_diag
 autoplot.tbl_df_diag <-
   function(object, type = "mf", mapping = aes(), ...) {
   if(is.element(type, c("mf", "measured-fitted"))) {
@@ -60,41 +61,53 @@ autoplot.tbl_df_diag <-
 
 
 #' plot.tbl_df_diag
+#' @description A generic function to plot an object of \code{tbl_df_diag} in various types.
+#' @details The argument \code{type} can be specified as below:
+#' * \code{mf} (\code{measured-fitted}): Measured vs fitted values (default)
+#' * \code{rf} (\code{resid-fitted}): Studentized residual vs fitted values
+#' * \code{qq}: QQ norm plot
+#' * \code{sl} (\code{scale-location}): Scale-Location plot
+#' * \code{cook} (\code{cooks-distance}): Cook's distance
+#' * \code{mm} (\code{marginal-model}): Marginal-model plot
+#' * \code{av} (\code{added-variable}): Added-variable plot (only for \code{lm} and \code{aov} object)
+#' * \code{cr} (\code{component-plus-residual}): Component-plus residual plot (only for \code{lm} and \code{aov} object)
 #' @importFrom graphics plot
 #' @param object An object of \code{tbl_df_diag}.
-#' @param type A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.
+#' @param type A string. See details.
 #' @param mapping An \code{\link[ggplot2]{aes()}} object.
 #' @param ... currently not to be used.
 #' @export
 #' @examples
 #' library(ggplot2)
 #' library(nlme)
+#' lm_od <- lm(distance ~ age + Sex, Orthodont)
 #' lme_od <- lme(distance ~ age + Sex, Orthodont)
-#' diag_od <- diagnose(lme_od)
+#' diag_lm_od <- diagnose(lm_od)
+#' diag_lme_od <- diagnose(lme_od)
 # '
 #' # measured-fitted plot
-#' plot(diag_od)
+#' plot(diag_lme_od)
 #' 
 #' # residual-fitted plot
-#' plot(diag_od, type = "rf")
+#' plot(diag_lme_od, type = "rf")
 #' 
 #' # QQ plot
-#' plot(diag_od, type = "qq")
+#' plot(diag_lme_od, type = "qq")
 #' 
 #' # scale-location plot
-#' plot(diag_od, type = "sl")
+#' plot(diag_lme_od, type = "sl")
 #' 
 #' # Cook's distance
-#' plot(diag_od, type = "cook")
+#' plot(diag_lme_od, type = "cook")
 #' 
 #' # marginal-model plot
-#' plot(diag_od, type = "mm", mapping = aes(x = age))
+#' plot(diag_lme_od, type = "mm", mapping = aes(x = age))
 #' 
-#' # added-variable plot
-#' plot(diag_od, type = "av", mapping = aes(x = age))
+#' # added-variable plot (only for lm and aov)
+#' plot(diag_lm_od, type = "av", mapping = aes(x = age))
 #' 
-#' # component-plus-residual plot
-#' plot(diag_od, type = "cr", mapping = aes(x = age))
+#' # component-plus-residual plot (only for lm and aov)
+#' plot(diag_lm_od, type = "cr", mapping = aes(x = age))
 plot.tbl_df_diag <-
   function(x, type = "mf", mapping = aes(), ...) {
   print(autoplot.tbl_df_diag(x, type = type, mapping = mapping, ...))
@@ -261,7 +274,8 @@ plot_marginal_model <- function(object, mapping, ...) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
   x_label <- as_label(mapping$x)
-  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  model <- attr(object, "model")
+  data_classes <- get_data_classes(model)
   if (!is.element(x_label, names(data_classes))) {
     cli_abort(glue("{x_label} is not found in the model!"))
   }
@@ -273,10 +287,9 @@ plot_marginal_model <- function(object, mapping, ...) {
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
   }
-  model <- attr(object, "model")
   model_class <- class(model)
   if (is.element(model_class, c("aov", "lm", "lme"))) {
-    resp <- attr(object, "model")$terms[[2]]
+    resp <- model$terms[[2]]
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
@@ -312,7 +325,8 @@ plot_added_variable <- function(object, mapping, ...) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
   x_label <- as_label(mapping$x)
-  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  model <- attr(object, "model")
+  data_classes <- get_data_classes(model)
   if (!is.element(x_label, names(data_classes))) {
     cli_abort(glue("{x_label} is not found in the model!"))
   }
@@ -324,7 +338,6 @@ plot_added_variable <- function(object, mapping, ...) {
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
   }
-  model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
     cli_abort("Added-variable plots are available only for aov or lm!")
@@ -361,7 +374,8 @@ plot_component_residual <- function(object, mapping, ...) {
     cli_abort("Specify `x` argument of `aes` for `mapping` argument!")
   }
   x_label <- as_label(mapping$x)
-  data_classes <- attr(attr(object, "terms"), "dataClasses")
+  model <- attr(object, "model")
+  data_classes <- get_data_classes(model)
   if (!is.element(x_label, names(data_classes))) {
     cli_abort(glue("{x_label} is not found in the model!"))
   }
@@ -373,7 +387,6 @@ plot_component_residual <- function(object, mapping, ...) {
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
   }
-  model <- attr(object, "model")
   model_class <- class(model)
   if (!is.element(model_class, c("aov", "lm"))) {
     cli_abort("Added-variable plots are available only for aov or lm!")

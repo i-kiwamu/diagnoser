@@ -136,3 +136,28 @@ diagnose.lmerMod <- function(model) {
   
   return(new_tibble_diag(influence, influence_groups, model))
 }
+
+
+
+get_data_classes <- function(model, ...) UseMethod("get_data_classes", model)
+
+#' @export
+get_data_classes.default <- function(model, ...) 
+  stop(paste("There is no get_data_classes() method for this object of the class",
+             paste(class(model), collapse = ", ")))
+
+get_data_classes.lm <- function(model) {
+  attr(model$terms, "dataClasses")
+}
+
+get_data_classes.aov <- function(model) {
+  attr(model$terms, "dataClasses")
+}
+
+get_data_classes.lme <- function(model) {
+  attr(model$terms, "dataClasses")
+}
+
+get_data_classes.lmerMod <- function(model) {
+  attr(attr(slot(model, "frame"), "terms"), "dataClasses")
+}
