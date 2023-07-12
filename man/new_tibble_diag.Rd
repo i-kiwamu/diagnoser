@@ -2,7 +2,7 @@
 % Please edit documentation in R/tbl_df_diag.R
 \name{new_tibble_diag}
 \alias{new_tibble_diag}
-\title{Create a object of tbl_df_diag, subclass of tibble}
+\title{new_tibble_diag}
 \usage{
 new_tibble_diag(x, xg, model)
 }

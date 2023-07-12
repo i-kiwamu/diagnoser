@@ -12,7 +12,7 @@
 \arguments{
 \item{object}{An object of \code{tbl_df_diag}.}
 
-\item{type}{A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.}
+\item{type}{A string. See details.}
 
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
 
@@ -29,35 +29,37 @@ The argument \code{type} can be specified as below:
 * \code{sl} (\code{scale-location}): Scale-Location plot
 * \code{cook} (\code{cooks-distance}): Cook's distance
 * \code{mm} (\code{marginal-model}): Marginal-model plot
-* \code{av} (\code{added-variable}): Added-variable plot
-* \code{cr} (\code{component-plus-residual}): Component-plus residual plot
+* \code{av} (\code{added-variable}): Added-variable plot (only for \code{lm} and \code{aov} object)
+* \code{cr} (\code{component-plus-residual}): Component-plus residual plot (only for \code{lm} and \code{aov} object)
 }
 \examples{
 library(ggplot2)
 library(nlme)
+lm_od <- lm(distance ~ age + Sex, Orthodont)
 lme_od <- lme(distance ~ age + Sex, Orthodont)
-diag_od <- diagnose(lme_od)
+diag_lm_od <- diagnose(lm_od)
+diag_lme_od <- diagnose(lme_od)
 # measured-fitted plot
-plot(diag_od)
+plot(diag_lme_od)
 
 # residual-fitted plot
-plot(diag_od, type = "rf")
+plot(diag_lme_od, type = "rf")
 
 # QQ plot
-plot(diag_od, type = "qq")
+plot(diag_lme_od, type = "qq")
 
 # scale-location plot
-plot(diag_od, type = "sl")
+plot(diag_lme_od, type = "sl")
 
 # Cook's distance
-plot(diag_od, type = "cook")
+plot(diag_lme_od, type = "cook")
 
 # marginal-model plot
-plot(diag_od, type = "mm", mapping = aes(x = age))
+plot(diag_lme_od, type = "mm", mapping = aes(x = age))
 
-# added-variable plot
-plot(diag_od, type = "av", mapping = aes(x = age))
+# added-variable plot (only for lm and aov)
+plot(diag_lm_od, type = "av", mapping = aes(x = age))
 
-# component-plus-residual plot
-plot(diag_od, type = "cr", mapping = aes(x = age))
+# component-plus-residual plot (only for lm and aov)
+plot(diag_lm_od, type = "cr", mapping = aes(x = age))
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/tbl_df_diag.R
 \name{print.tbl_df_diag}
 \alias{print.tbl_df_diag}
-\title{Print of tbl_df_diag}
+\title{print.tbl_df_diag}
 \usage{
 \method{print}{tbl_df_diag}(
   x,
