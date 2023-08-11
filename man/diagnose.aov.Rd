@@ -13,7 +13,7 @@
 An object of \code{tbl_df_diag}.
 }
 \description{
-Diagnose a aov model
+To generate a diagnosis of an \code{aov} model.
 }
 \note{
 To diagnose the \code{\link[stats]{aov}} model.

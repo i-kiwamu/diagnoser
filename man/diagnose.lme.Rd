@@ -13,7 +13,7 @@
 An object of \code{tbl_df_diag}.
 }
 \description{
-Diagnose a lme model
+To generate a diagnosis of a \code{lme} model.
 }
 \note{
 To diagnose the \code{\link[nlme]{lme}} model.
