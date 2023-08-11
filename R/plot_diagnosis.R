@@ -115,6 +115,7 @@ plot.tbl_df_diag <-
 
 
 #' plot_measured_fitted
+#' @description Plot of measured vs fitted values
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -142,6 +143,7 @@ plot_measured_fitted <- function(object, mapping, ...) {
 
 
 #' plot_resid_fitted
+#' @description Plot of studentized residuals vs fitted values.
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_boxplot
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -180,6 +182,7 @@ plot_resid_fitted <- function(object, mapping, ...) {
 
 
 #' plot_qq
+#' @description QQ plot
 #' @importFrom ggplot2 ggplot aes geom_qq geom_qq_line
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
@@ -212,6 +215,7 @@ plot_qq <- function(object, mapping, level = 1, ...) {
 
 
 #' plot_scale_location
+#' @description Scale-location plot
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -237,6 +241,7 @@ plot_scale_location <- function(object, mapping, ...) {
 
 
 #' plot_cooksd
+#' @description Plot of Cook's distance
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
@@ -262,6 +267,7 @@ plot_cooksd <- function(object, mapping, ...) {
 
 
 #' plot_marginal_model
+#' @description Marginal-model plot
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom glue glue
 #' @importFrom rlang as_label
@@ -312,6 +318,7 @@ plot_marginal_model <- function(object, mapping, ...) {
 
 
 #' plot_added_variable
+#' @description Added-variable plot
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline labs
 #' @importFrom tibble tibble
 #' @importFrom stats update
@@ -363,6 +370,7 @@ plot_added_variable <- function(object, mapping, ...) {
 
 
 #' plot_component_residual
+#' @description Component+residual plot
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom rlang as_label sym
 #' @importFrom cli cli_abort

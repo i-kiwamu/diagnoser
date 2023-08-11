@@ -12,7 +12,7 @@ plot_component_residual(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
 }
 \description{
-plot_component_residual
+Component+residual plot
 }
 \note{
 To generate a component-plus-residual plot.

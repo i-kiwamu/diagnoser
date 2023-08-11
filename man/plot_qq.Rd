@@ -14,7 +14,7 @@ plot_qq(object, mapping, level = 1, ...)
 \item{level}{A character of level for mixed-effects models (default = 1). See \code{\link[HLMdiag]{hlm_influence}}.}
 }
 \description{
-plot_qq
+QQ plot
 }
 \note{
 To generate a QQ plot.

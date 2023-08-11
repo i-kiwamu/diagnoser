@@ -11,6 +11,7 @@ diagnose.default <- function(model, ...)
 
 
 #' Diagnose a aov model
+#' @description To generate a diagnosis of an \code{aov} model.
 #' @importFrom broom augment
 #' @importFrom dplyr mutate rename
 #' @param model \code{\link[stats]{aov}} object.
@@ -40,6 +41,7 @@ diagnose.aov <- function(model) {
 
 
 #' Diagnose a lm model
+#' @description To generate a diagnosis of a \code{lm} model.
 #' @importFrom broom augment
 #' @importFrom dplyr mutate rename
 #' @param model \code{\link[stats]{lm}} object.
@@ -66,6 +68,7 @@ diagnose.lm <- function(model) {
 
 
 #' Diagnose a lme model
+#' @description To generate a diagnosis of a \code{lme} model.
 #' @importFrom HLMdiag hlm_augment hlm_resid
 #' @importFrom dplyr mutate rename
 #' @param model \code{\link[nlme]{lme}} object.
@@ -98,6 +101,7 @@ diagnose.lme <- function(model) {
 
 
 #' Diagnose a lmerMod model
+#' @description To generate a diagnosis of a \code{lmerMod} model.
 #' @importFrom HLMdiag hlm_augment hlm_resid
 #' @importFrom tibble rownames_to_column
 #' @importFrom dplyr mutate rename left_join

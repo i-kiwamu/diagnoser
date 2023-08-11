@@ -12,7 +12,7 @@ plot_cooksd(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
 }
 \description{
-plot_cooksd
+Plot of Cook's distance
 }
 \note{
 To visualize the Cook's distance.

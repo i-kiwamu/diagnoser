@@ -12,7 +12,7 @@ plot_marginal_model(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
 }
 \description{
-plot_marginal_model
+Marginal-model plot
 }
 \note{
 To generate a marginal-model plot.

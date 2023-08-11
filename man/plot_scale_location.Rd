@@ -12,7 +12,7 @@ plot_scale_location(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
 }
 \description{
-plot_scale_location
+Scale-location plot
 }
 \note{
 To generate a Scale-Location plot.

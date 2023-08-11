@@ -12,7 +12,7 @@ plot_added_variable(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
 }
 \description{
-plot_added_variable
+Added-variable plot
 }
 \note{
 To generate an added-variable plot.

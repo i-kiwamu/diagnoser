@@ -12,7 +12,7 @@ plot_measured_fitted(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
 }
 \description{
-plot_measured_fitted
+Plot of measured vs fitted values
 }
 \note{
 To generate a scatter plot of measured vs fitted values.

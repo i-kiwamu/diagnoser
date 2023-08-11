@@ -12,7 +12,7 @@ plot_resid_fitted(object, mapping, ...)
 \item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
 }
 \description{
-plot_resid_fitted
+Plot of studentized residuals vs fitted values.
 }
 \note{
 To generate a scatter plot of fitted values vs studentized residuals.
