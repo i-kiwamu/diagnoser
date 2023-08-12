@@ -37,8 +37,8 @@ diagnose.aov <- function(model, ...) {
   model_lm <- lm(model)
   influence <- augment(model_lm) %>%
     rowid_to_column(var = ".rowid") %>%
-    rename(cooksd = .data$.cooksd,
-           leverage.overall = .data$.hat) %>%
+    rename(cooksd = ".cooksd",
+           leverage.overall = ".hat") %>%
     mutate(.std.resid_abs_sqrt = sqrt(abs(.data$.std.resid)))
   if (!is.element(".rownames", colnames(influence))) {
     influence <- influence %>%
@@ -68,8 +68,8 @@ diagnose.aov <- function(model, ...) {
 diagnose.lm <- function(model, ...) {
   influence <- augment(model) %>%
     rowid_to_column(var = ".rowid") %>%
-    rename(cooksd = .data$.cooksd,
-           leverage.overall = .data$.hat) %>%
+    rename(cooksd = ".cooksd",
+           leverage.overall = ".hat") %>%
     mutate(.std.resid_abs_sqrt = sqrt(abs(.data$.std.resid)))
   if (!is.element(".rownames", colnames(influence))) {
     influence <- influence %>%
@@ -145,7 +145,7 @@ diagnose.lme <- function(model, ...) {
 diagnose.lmerMod <- function(model, ...) {
   influence <- hlm_augment(model, include.ls = FALSE) %>%
     rowid_to_column(var = ".rowid") %>%
-    rename(.rownames = .data$id) %>%
+    rename(.rownames = "id") %>%
     mutate(.std.resid = resid(model, type = "pearson", scaled = TRUE),
            .std.resid_abs_sqrt = sqrt(abs(.data$.std.resid)))
   if (any(is.na(influence$.rownames))) {

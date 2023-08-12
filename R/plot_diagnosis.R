@@ -111,7 +111,8 @@ plot.tbl_df_diag <-
 
 #' plot_measured_fitted
 #' @description Plot of measured vs fitted values
-#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -132,17 +133,21 @@ plot_measured_fitted <- function(object, mapping, ...) {
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  mapping_new <- update_aes(aes(.data$.fitted, !! resp), mapping)
-  ggplot(object, mapping_new) +
+  mapping_new <- update_aes(aes(.data$.fitted, {{resp}}),
+                            mapping)
+  object_tbl <- as_tibble(object)
+  ggplot(object_tbl, mapping_new) +
     geom_point(shape = 1) +
-    geom_text_repel(aes(label = .data$label))
+    geom_text_repel(data = object_tbl %>% filter(.data$label != ""),
+                    aes(label = .data$label))
 }
 
 
 #' plot_resid_fitted
 #' @description Plot of studentized residuals vs fitted values.
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_boxplot
-#' @importFrom rlang .data
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
 #' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
@@ -164,17 +169,19 @@ plot_resid_fitted <- function(object, mapping, ...) {
     mapping <- ignore_y_aes(mapping)
   }
 
-  mapping_new <- update_aes(mapping, aes(y = .data$.std.resid))
-  
+  mapping_new <-
+    update_aes(mapping, aes(y = .data$.std.resid))
+  object_tbl <- as_tibble(object)
   if (x_type == "numeric") {
-    ggplot(object, mapping_new) +
+    ggplot(object_tbl, mapping_new) +
       geom_point(shape = 1) +
       geom_smooth(method = "loess", formula = y ~ x,
                   colour = "red", se = FALSE,
                   linewidth = 0.3) +
-      geom_text_repel(aes(label = .data$label))
+      geom_text_repel(data = object_tbl %>% filter(.data$label != ""),
+                      aes(label = .data$label))
   } else {
-    ggplot(object, mapping_new) +
+    ggplot(object_tbl, mapping_new) +
       geom_boxplot(linewidth = 0.3)
   }
 }
@@ -182,7 +189,6 @@ plot_resid_fitted <- function(object, mapping, ...) {
 
 #' plot_qq
 #' @description QQ plot
-#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot aes geom_qq geom_qq_line
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
@@ -217,7 +223,8 @@ plot_qq <- function(object, mapping, level = 1, ...) {
 
 #' plot_scale_location
 #' @description Scale-location plot
-#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -232,20 +239,24 @@ plot_scale_location <- function(object, mapping, ...) {
     mapping <- ignore_y_aes(mapping)
   }
 
-  mapping_new <- update_aes(aes(.data$.fitted, .data$.std.resid_abs_sqrt),
-                            mapping)
-  ggplot(object, mapping_new) +
+  mapping_new <-
+    update_aes(aes(.data$.fitted, .data$.std.resid_abs_sqrt),
+               mapping)
+  object_tbl <- as_tibble(object)
+  ggplot(object_tbl, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 colour = "red", se = FALSE,
                 linewidth = 0.3) +
-    geom_text_repel(aes(label = .data$label))
+    geom_text_repel(data = object_tbl %>% filter(.data$label != ""),
+                    aes(label = .data$label))
 }
 
 
 #' plot_cooksd
 #' @description Plot of Cook's distance
-#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
@@ -259,20 +270,23 @@ plot_cooksd <- function(object, mapping, ...) {
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
   }
-  mapping_new <- update_aes(mapping, aes(.data$.rowid, .data$cooksd))
-  object %>%
-    ggplot(mapping_new) +
+  mapping_new <-
+    update_aes(mapping,
+               aes(.data$.rowid, .data$cooksd))
+  object_tbl <- as_tibble(object)
+  ggplot(object_tbl, mapping_new) +
     geom_point(shape = 1) +
     geom_segment(aes(xend = .data$.rowid, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3) +
-    geom_text_repel(aes(label = .data$label))
+    geom_text_repel(data = object_tbl %>% filter(.data$label != ""),
+                    aes(label = .data$label))
 }
 
 
 #' plot_marginal_model
 #' @description Marginal-model plot
 #' @importFrom stats predict
-#' @importFrom rlang .data as_label
+#' @importFrom rlang as_label
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom glue glue
 #' @importFrom cli cli_abort
@@ -305,16 +319,17 @@ plot_marginal_model <- function(object, mapping, ...) {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
   
-  mapping_new <- update_aes(mapping, aes(y = !! resp))
+  mapping_new <- update_aes(mapping, aes(y = {{resp}}))
+  span <- min(diff(sort(unique(object[[x_label]])))) / 2
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(colour = "Data", linetype = "Data"), 
-                linewidth = 0.3, se = FALSE) +
+                linewidth = 0.3, se = FALSE, span = span) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(y = predict(model, newdata = object),
                     colour = "Model", linetype = "Model"),
-                linewidth = 0.3, se = FALSE) +
+                linewidth = 0.3, se = FALSE, span = span) +
     scale_colour_manual(name = "", breaks = c("Data", "Model"),
                         values = c("Data" = "blue", "Model" = "red")) +
     scale_linetype_manual(name = "", breaks = c("Data", "Model"),
@@ -325,7 +340,7 @@ plot_marginal_model <- function(object, mapping, ...) {
 #' plot_added_variable
 #' @description Added-variable plot
 #' @importFrom stats residuals coef
-#' @importFrom rlang .data as_label sym
+#' @importFrom rlang as_label sym
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline labs
 #' @importFrom tibble tibble
 #' @importFrom stats update
@@ -379,7 +394,7 @@ plot_added_variable <- function(object, mapping, ...) {
 #' plot_component_residual
 #' @description Component+residual plot
 #' @importFrom stats coef
-#' @importFrom rlang .data as_label sym
+#' @importFrom rlang as_label sym
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
@@ -414,18 +429,20 @@ plot_component_residual <- function(object, mapping, ...) {
   
   mapping_new <- 
     update_aes(mapping,
-               aes(x = !! x_sym,
-                   y = .data$.resid + coef_sub * !! x_sym))
+               aes(x = {{x_sym}},
+                   y = .data$.resid + coef_sub * {{x_sym}}))
+  span <- min(diff(sort(unique(object[[x_label]])))) / 2
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(colour = "Data", linetype = "Data"),
-                se = FALSE, linewidth = 0.3) +
+                se = FALSE, linewidth = 0.3, span = span) +
     geom_abline(intercept = 0, slope = coef_sub,
                 # aes(colour = "Model", linetype = "Model"),
-                linewidth = 0.3,) +
+                linewidth = 0.3) +
     scale_colour_manual(name = "", breaks = c("Data", "Model"),
                         values = c("Data" = "blue", "Model" = "red")) +
     scale_linetype_manual(name = "", breaks = c("Data", "Model"),
-                          values = c("Data" = "solid", "Model" = "dashed"))
+                          values = c("Data" = "solid", "Model" = "dashed")) +
+    labs(y = "Component + Residual")
 }
