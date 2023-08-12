@@ -9,7 +9,9 @@ plot_resid_fitted(object, mapping, ...)
 \arguments{
 \item{object}{An object of \code{tbl_df_diag}.}
 
-\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+\item{mapping}{An aesthetic mapping object \code{aes()} of \code{ggplot2}.}
+
+\item{...}{currently not to be used.}
 }
 \description{
 Plot of studentized residuals vs fitted values.

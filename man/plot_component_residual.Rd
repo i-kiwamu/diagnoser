@@ -9,7 +9,9 @@ plot_component_residual(object, mapping, ...)
 \arguments{
 \item{object}{An object of \code{tbl_df_diag}.}
 
-\item{mapping}{An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.}
+\item{mapping}{An aesthetic mapping object \code{aes()} of \code{ggplot2} with a \code{x} argument.}
+
+\item{...}{currently not to be used.}
 }
 \description{
 Component+residual plot

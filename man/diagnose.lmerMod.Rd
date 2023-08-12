@@ -2,12 +2,14 @@
 % Please edit documentation in R/diagnose.R
 \name{diagnose.lmerMod}
 \alias{diagnose.lmerMod}
-\title{Diagnose a lmerMod model}
+\title{diagnose.lmerMod}
 \usage{
-\method{diagnose}{lmerMod}(model)
+\method{diagnose}{lmerMod}(model, ...)
 }
 \arguments{
 \item{model}{\code{lmerMod} object.}
+
+\item{...}{Currently not to be used.}
 }
 \value{
 An object of \code{tbl_df_diag}.
@@ -19,8 +21,9 @@ To generate a diagnosis of a \code{lmerMod} model.
 To diagnose the \code{lmerMod} model.
 }
 \examples{
+library(nlme)
 library(lme4)
 lmer_orthodont <- lmer(distance ~ age + Sex + (age + Sex | Subject),
-                       data = nlme::Orthodont)
+                       data = Orthodont)
 (diag_orthodont <- diagnose(lmer_orthodont))
 }

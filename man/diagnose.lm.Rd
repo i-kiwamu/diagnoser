@@ -2,12 +2,14 @@
 % Please edit documentation in R/diagnose.R
 \name{diagnose.lm}
 \alias{diagnose.lm}
-\title{Diagnose a lm model}
+\title{diagnose.lm}
 \usage{
-\method{diagnose}{lm}(model)
+\method{diagnose}{lm}(model, ...)
 }
 \arguments{
 \item{model}{\code{\link[stats]{lm}} object.}
+
+\item{...}{Currently not to be used.}
 }
 \value{
 An object of \code{tbl_df_diag}.
@@ -20,5 +22,5 @@ To diagnose the \code{\link[stats]{lm}} model.
 }
 \examples{
 lm_rock <- lm(perm ~ area + peri + shape, rock)
-(diag_rock <- diagnose(aov_rock))
+(diag_rock <- diagnose(lm_rock))
 }

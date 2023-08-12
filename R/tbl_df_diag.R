@@ -15,17 +15,19 @@ new_tibble_diag <- function(x, xg, model) {
 }
 
 
-#' print.tbl_df_diag
-#' @description Print of tbl_df_diag
-#' @inheritParams tibble::print.tbl_df
-print.tbl_df_diag <- function(x, width = NULL, ..., n = NULL,
-                              max_extra_cols = NULL,
-                              max_footer_lines = NULL) {
-  NextMethod()
-}
+# #' print.tbl_df_diag
+# #' @description Print of tbl_df_diag
+# #' @inheritParams tibble::print.tbl_df
+# #' @export
+# print.tbl_df_diag <- function(x, width = NULL, ..., n = NULL,
+#                               max_extra_cols = NULL,
+#                               max_footer_lines = NULL) {
+#   NextMethod()
+# }
 
 
 #' names.tbl_df_diag
+#' @param x An object of \code{tbl_df_diag}.
 #' @export
 names.tbl_df_diag <- function(x) {
   xt <- x

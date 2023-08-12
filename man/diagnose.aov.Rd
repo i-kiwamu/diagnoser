@@ -2,12 +2,14 @@
 % Please edit documentation in R/diagnose.R
 \name{diagnose.aov}
 \alias{diagnose.aov}
-\title{Diagnose a aov model}
+\title{diagnose.aov}
 \usage{
-\method{diagnose}{aov}(model)
+\method{diagnose}{aov}(model, ...)
 }
 \arguments{
 \item{model}{\code{\link[stats]{aov}} object.}
+
+\item{...}{Currently not to be used.}
 }
 \value{
 An object of \code{tbl_df_diag}.

@@ -13,16 +13,19 @@ RoxygenNote: 7.2.3
 Imports:
     broom,
     cli,
-    cowplot,
     dplyr,
     ggplot2,
     ggrepel,
     glue,
     HLMdiag,
     lme4,
+    magrittr,
+    methods,
     rlang,
     stats,
     tibble
 Suggests: 
+  mlmRev,
+  nlme,
   testthat (>= 3.0.0)
 Config/testthat/edition: 3

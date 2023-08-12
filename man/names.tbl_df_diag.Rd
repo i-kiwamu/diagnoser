@@ -6,6 +6,9 @@
 \usage{
 \method{names}{tbl_df_diag}(x)
 }
+\arguments{
+\item{x}{An object of \code{tbl_df_diag}.}
+}
 \description{
 names.tbl_df_diag
 }

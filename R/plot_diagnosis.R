@@ -1,4 +1,3 @@
-#' update_aes
 update_aes <- function(mapping_orig, mapping_new) {
   result <- mapping_orig
   names_new <- names(mapping_new)
@@ -10,18 +9,14 @@ update_aes <- function(mapping_orig, mapping_new) {
 }
 
 
-#' ignore_x_aes
-#' @importFrom cli cli_alert_info
 ignore_x_aes <- function(mapping) {
-  cli_alert_info("`x` is specified in aes(), but ignored...")
+  cli::cli_alert_info("`x` is specified in aes(), but ignored...")
   mapping[names(mapping) != "x"]
 }
 
 
-#' ignore_y_aes
-#' @importFrom cli cli_alert_info
 ignore_y_aes <- function(mapping) {
-  cli_alert_info("`y` is specified in aes(), but ignored...")
+  cli::cli_alert_info("`y` is specified in aes(), but ignored...")
   mapping[names(mapping) != "y"]
 }
 
@@ -32,7 +27,7 @@ ignore_y_aes <- function(mapping) {
 #' @importFrom glue glue
 #' @param object An object of \code{tbl_df_diag}.
 #' @param type A character either \code{mf} (default), \code{rf}, \code{qq}, \code{sl}, \code{cook}, \code{mm}, \code{av}, or \code{cr}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
 #' @param ... currently not to be used.
 #' @export
 #' @rdname plot.tbl_df_diag
@@ -72,9 +67,9 @@ autoplot.tbl_df_diag <-
 #' * \code{av} (\code{added-variable}): Added-variable plot (only for \code{lm} and \code{aov} object)
 #' * \code{cr} (\code{component-plus-residual}): Component-plus residual plot (only for \code{lm} and \code{aov} object)
 #' @importFrom graphics plot
-#' @param object An object of \code{tbl_df_diag}.
+#' @param x An object of \code{tbl_df_diag}.
 #' @param type A string. See details.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
 #' @param ... currently not to be used.
 #' @export
 #' @examples
@@ -84,7 +79,7 @@ autoplot.tbl_df_diag <-
 #' lme_od <- lme(distance ~ age + Sex, Orthodont)
 #' diag_lm_od <- diagnose(lm_od)
 #' diag_lme_od <- diagnose(lme_od)
-# '
+#'
 #' # measured-fitted plot
 #' plot(diag_lme_od)
 #' 
@@ -116,10 +111,12 @@ plot.tbl_df_diag <-
 
 #' plot_measured_fitted
 #' @description Plot of measured vs fitted values
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot aes geom_point
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
+#' @param ... currently not to be used.
 #' @note To generate a scatter plot of measured vs fitted values.
 plot_measured_fitted <- function(object, mapping, ...) {
   if (is.element("x", names(mapping)))
@@ -135,23 +132,25 @@ plot_measured_fitted <- function(object, mapping, ...) {
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
-  mapping_new <- update_aes(aes(.fitted, !! resp), mapping)
+  mapping_new <- update_aes(aes(.data$.fitted, !! resp), mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
-    geom_text_repel(aes(label = label))
+    geom_text_repel(aes(label = .data$label))
 }
 
 
 #' plot_resid_fitted
 #' @description Plot of studentized residuals vs fitted values.
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_boxplot
+#' @importFrom rlang .data
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
+#' @param ... currently not to be used.
 #' @note To generate a scatter plot of fitted values vs studentized residuals.
 plot_resid_fitted <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
-    mapping <- update_aes(mapping, aes(x = .fitted))
+    mapping <- update_aes(mapping, aes(x = .data$.fitted))
     x_type <- "numeric"
   } else {
     x_label <- as_label(mapping$x)
@@ -165,7 +164,7 @@ plot_resid_fitted <- function(object, mapping, ...) {
     mapping <- ignore_y_aes(mapping)
   }
 
-  mapping_new <- update_aes(mapping, aes(y = .std.resid))
+  mapping_new <- update_aes(mapping, aes(y = .data$.std.resid))
   
   if (x_type == "numeric") {
     ggplot(object, mapping_new) +
@@ -173,7 +172,7 @@ plot_resid_fitted <- function(object, mapping, ...) {
       geom_smooth(method = "loess", formula = y ~ x,
                   colour = "red", se = FALSE,
                   linewidth = 0.3) +
-      geom_text_repel(aes(label = label))
+      geom_text_repel(aes(label = .data$label))
   } else {
     ggplot(object, mapping_new) +
       geom_boxplot(linewidth = 0.3)
@@ -183,11 +182,13 @@ plot_resid_fitted <- function(object, mapping, ...) {
 
 #' plot_qq
 #' @description QQ plot
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot aes geom_qq geom_qq_line
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
 #' @param level A character of level for mixed-effects models (default = 1). See \code{\link[HLMdiag]{hlm_influence}}.
+#' @param ... currently not to be used.
 #' @note To generate a QQ plot.
 plot_qq <- function(object, mapping, level = 1, ...) {
   if (is.element("x", names(mapping))) {
@@ -198,7 +199,7 @@ plot_qq <- function(object, mapping, level = 1, ...) {
   }
 
   if (level == 1) {
-    mapping_new <- update_aes(aes(sample = .resid), mapping)
+    mapping_new <- update_aes(aes(sample = .data$.resid), mapping)
     ggplot(object, mapping_new) +
       geom_qq(shape = 1) +
       geom_qq_line(linewidth = 0.3)
@@ -216,10 +217,12 @@ plot_qq <- function(object, mapping, level = 1, ...) {
 
 #' plot_scale_location
 #' @description Scale-location plot
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
+#' @param ... currently not to be used.
 #' @note To generate a Scale-Location plot.
 plot_scale_location <- function(object, mapping, ...) {
   if (is.element("x", names(mapping))) {
@@ -229,24 +232,25 @@ plot_scale_location <- function(object, mapping, ...) {
     mapping <- ignore_y_aes(mapping)
   }
 
-  mapping_new <- update_aes(aes(.fitted, .std.resid_abs_sqrt),
+  mapping_new <- update_aes(aes(.data$.fitted, .data$.std.resid_abs_sqrt),
                             mapping)
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 colour = "red", se = FALSE,
                 linewidth = 0.3) +
-    geom_text_repel(aes(label = label))
+    geom_text_repel(aes(label = .data$label))
 }
 
 
 #' plot_cooksd
 #' @description Plot of Cook's distance
+#' @importFrom rlang .data
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_segment
-#' @importFrom tibble tibble rowid_to_column
 #' @importFrom ggrepel geom_text_repel
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2}.
+#' @param ... currently not to be used.
 #' @note To visualize the Cook's distance.
 plot_cooksd <- function(object, mapping, ...) {
   if (is.element("x", names(mapping))) {
@@ -255,25 +259,26 @@ plot_cooksd <- function(object, mapping, ...) {
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
   }
-  mapping_new <- update_aes(mapping, aes(id, cooksd))
-  object |>
-    rowid_to_column(var = "id") |>
+  mapping_new <- update_aes(mapping, aes(.data$.rowid, .data$cooksd))
+  object %>%
     ggplot(mapping_new) +
     geom_point(shape = 1) +
-    geom_segment(aes(xend = id, yend = 0), linewidth = 0.3) +
+    geom_segment(aes(xend = .data$.rowid, yend = 0), linewidth = 0.3) +
     geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.3) +
-    geom_text_repel(aes(label = label))
+    geom_text_repel(aes(label = .data$label))
 }
 
 
 #' plot_marginal_model
 #' @description Marginal-model plot
+#' @importFrom stats predict
+#' @importFrom rlang .data as_label
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth scale_colour_manual scale_linetype_manual
 #' @importFrom glue glue
-#' @importFrom rlang as_label
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2} with a \code{x} argument.
+#' @param ... currently not to be used.
 #' @note To generate a marginal-model plot.
 plot_marginal_model <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
@@ -319,13 +324,15 @@ plot_marginal_model <- function(object, mapping, ...) {
 
 #' plot_added_variable
 #' @description Added-variable plot
+#' @importFrom stats residuals coef
+#' @importFrom rlang .data as_label sym
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline labs
 #' @importFrom tibble tibble
 #' @importFrom stats update
-#' @importFrom rlang as_label sym
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2} with a \code{x} argument.
+#' @param ... currently not to be used.
 #' @note To generate an added-variable plot.
 plot_added_variable <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
@@ -358,7 +365,7 @@ plot_added_variable <- function(object, mapping, ...) {
   model1 <- update(model, substitute(~ . - a, list(a = x_sym)))
   model2 <- update(model1, substitute(a ~ ., list(a = x_sym)))
   
-  mapping_new <- update_aes(mapping, aes(x = x, y = y))
+  mapping_new <- update_aes(mapping, aes(x = .data$x, y = .data$y))
   df_plot <- tibble(x = residuals(model2), y = residuals(model1))
   ggplot(df_plot, mapping_new) +
     geom_point(shape = 1) +
@@ -371,11 +378,13 @@ plot_added_variable <- function(object, mapping, ...) {
 
 #' plot_component_residual
 #' @description Component+residual plot
+#' @importFrom stats coef
+#' @importFrom rlang .data as_label sym
 #' @importFrom ggplot2 ggplot aes geom_point geom_abline geom_smooth scale_colour_manual scale_linetype_manual
-#' @importFrom rlang as_label sym
 #' @importFrom cli cli_abort
 #' @param object An object of \code{tbl_df_diag}.
-#' @param mapping An \code{\link[ggplot2]{aes()}} object with a \code{x} argument.
+#' @param mapping An aesthetic mapping object \code{aes()} of \code{ggplot2} with a \code{x} argument.
+#' @param ... currently not to be used.
 #' @note To generate a component-plus-residual plot.
 plot_component_residual <- function(object, mapping, ...) {
   if (!is.element("x", names(mapping))) {
@@ -406,7 +415,7 @@ plot_component_residual <- function(object, mapping, ...) {
   mapping_new <- 
     update_aes(mapping,
                aes(x = !! x_sym,
-                   y = .resid + coef_sub * !! x_sym))
+                   y = .data$.resid + coef_sub * !! x_sym))
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,

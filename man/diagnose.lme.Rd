@@ -2,12 +2,14 @@
 % Please edit documentation in R/diagnose.R
 \name{diagnose.lme}
 \alias{diagnose.lme}
-\title{Diagnose a lme model}
+\title{diagnose.lme}
 \usage{
-\method{diagnose}{lme}(model)
+\method{diagnose}{lme}(model, ...)
 }
 \arguments{
 \item{model}{\code{\link[nlme]{lme}} object.}
+
+\item{...}{Currently not to be used.}
 }
 \value{
 An object of \code{tbl_df_diag}.

@@ -14,9 +14,11 @@
 
 \item{type}{A string. See details.}
 
-\item{mapping}{An \code{\link[ggplot2]{aes()}} object.}
+\item{mapping}{An aesthetic mapping object \code{aes()} of \code{ggplot2}.}
 
 \item{...}{currently not to be used.}
+
+\item{x}{An object of \code{tbl_df_diag}.}
 }
 \description{
 A generic function to plot an object of \code{tbl_df_diag} in various types.
@@ -39,6 +41,7 @@ lm_od <- lm(distance ~ age + Sex, Orthodont)
 lme_od <- lme(distance ~ age + Sex, Orthodont)
 diag_lm_od <- diagnose(lm_od)
 diag_lme_od <- diagnose(lme_od)
+
 # measured-fitted plot
 plot(diag_lme_od)
 
