@@ -45,7 +45,7 @@ diagnose.aov <- function(model, ...) {
       mutate(.rownames = rownames(influence))
   }
   influence <- influence %>%
-    mutate(label = ifelse(.data$cooksd > 0.05, .data$.rownames, ""))
+    mutate(label = ifelse(.data$cooksd > 1, .data$.rownames, ""))
   
   return(new_tibble_diag(influence, NULL, model))
 }
@@ -76,7 +76,7 @@ diagnose.lm <- function(model, ...) {
       mutate(.rownames = rownames(influence))
   }
   influence <- influence %>%
-    mutate(label = ifelse(.data$cooksd > 0.05, .data$.rownames, ""))
+    mutate(label = ifelse(.data$cooksd > 1, .data$.rownames, ""))
 
   return(new_tibble_diag(influence, NULL, model))
 }
@@ -108,7 +108,7 @@ diagnose.lme <- function(model, ...) {
     influence$.rownames <- rownames(model$data)
   }
   influence <- influence %>%
-    mutate(label = ifelse(.data$cooksd > 0.05, .data$.rownames, ""))
+    mutate(label = ifelse(.data$cooksd > 1, .data$.rownames, ""))
   
   groups <- colnames(model$groups)
   influence_groups <- list()
@@ -152,7 +152,7 @@ diagnose.lmerMod <- function(model, ...) {
     influence$.rownames <- rownames(slot(model, "frame"))
   }
   influence <- influence %>%
-    mutate(label = ifelse(.data$cooksd > 0.05, .data$.rownames, ""))
+    mutate(label = ifelse(.data$cooksd > 1, .data$.rownames, ""))
   
   bs <- ranef(model)
   groups <- names(slot(model, "flist"))
