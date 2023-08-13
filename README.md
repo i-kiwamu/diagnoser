@@ -7,7 +7,8 @@
 <!-- badges: end -->
 
 The goal of diagnoser is to make it easy to diagnose regression models,
-`lm`, `lme`, or `lmer`.
+`lm`, `lme`, or `lmer`. A great package `car` can do this, but
+`diagnoser` produces diagnosis plots using `ggplot2`.
 
 ## Installation
 
@@ -39,6 +40,8 @@ plot(diag_lm_mtcars, type = "mf")
 ```
 
 <img src="man/figures/README-mf1-1.png" width="100%" />
+
+Data with text show Cook’s distance \> 0.05.
 
 ### Residuals vs fitted
 

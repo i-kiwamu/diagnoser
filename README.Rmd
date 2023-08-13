@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of diagnoser is to make it easy to diagnose regression models, `lm`, `lme`, or `lmer`.
+The goal of diagnoser is to make it easy to diagnose regression models, `lm`, `lme`, or `lmer`. A great package `car` can do this, but `diagnoser` produces diagnosis plots using `ggplot2`.
 
 ## Installation
 
@@ -47,6 +47,8 @@ diag_lm_mtcars <- diagnose(lm_mtcars)
 ```{r mf1}
 plot(diag_lm_mtcars, type = "mf")
 ```
+
+Data with text show Cook's distance > 0.05.
 
 ### Residuals vs fitted
 
