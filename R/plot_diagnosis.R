@@ -320,16 +320,15 @@ plot_marginal_model <- function(object, mapping, ...) {
   }
   
   mapping_new <- update_aes(mapping, aes(y = {{resp}}))
-  span <- min(diff(sort(unique(object[[x_label]])))) / 2
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(colour = "Data", linetype = "Data"), 
-                linewidth = 0.3, se = FALSE, span = span) +
+                linewidth = 0.3, se = FALSE) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(y = predict(model, newdata = object),
                     colour = "Model", linetype = "Model"),
-                linewidth = 0.3, se = FALSE, span = span) +
+                linewidth = 0.3, se = FALSE) +
     scale_colour_manual(name = "", breaks = c("Data", "Model"),
                         values = c("Data" = "blue", "Model" = "red")) +
     scale_linetype_manual(name = "", breaks = c("Data", "Model"),
@@ -431,12 +430,11 @@ plot_component_residual <- function(object, mapping, ...) {
     update_aes(mapping,
                aes(x = {{x_sym}},
                    y = .data$.resid + coef_sub * {{x_sym}}))
-  span <- min(diff(sort(unique(object[[x_label]])))) / 2
   ggplot(object, mapping_new) +
     geom_point(shape = 1) +
     geom_smooth(method = "loess", formula = y ~ x,
                 aes(colour = "Data", linetype = "Data"),
-                se = FALSE, linewidth = 0.3, span = span) +
+                se = FALSE, linewidth = 0.3) +
     geom_abline(intercept = 0, slope = coef_sub,
                 # aes(colour = "Model", linetype = "Model"),
                 linewidth = 0.3) +
