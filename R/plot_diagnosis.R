@@ -159,11 +159,11 @@ plot_resid_fitted <- function(object, mapping, ...) {
     x_type <- "numeric"
   } else {
     x_label <- as_label(mapping$x)
-    data_classes <- attr(attr(object, "terms"), "dataClasses")
-    if (!is.element(x_label, names(data_classes))) {
+    if (is.null(object[[x_label]])) {
       cli_abort(glue("{x_label} is not found in the model!"))
+    } else {
+      is_numeric_x <- is.numeric(object[[x_label]])
     }
-    x_type <- data_classes[x_label]
   }
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
@@ -172,7 +172,7 @@ plot_resid_fitted <- function(object, mapping, ...) {
   mapping_new <-
     update_aes(mapping, aes(y = .data$.std.resid))
   object_tbl <- as_tibble(object)
-  if (x_type == "numeric") {
+  if (is_numeric_x) {
     ggplot(object_tbl, mapping_new) +
       geom_point(shape = 1) +
       geom_smooth(method = "loess", formula = y ~ x,

@@ -173,7 +173,7 @@ diagnose.lmerMod <- function(model, ...) {
 
 get_data_classes <- function(model, ...) UseMethod("get_data_classes", model)
 
-get_data_classes.default <- function(model, ...) 
+get_data_classes.default <- function(model, ...)
   stop(paste("There is no get_data_classes() method for this object of the class",
              paste(class(model), collapse = ", ")))
 
