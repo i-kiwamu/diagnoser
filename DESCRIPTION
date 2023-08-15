@@ -1,11 +1,12 @@
 Package: diagnoser
 Type: Package
-Title: Diagnosis of statistical models
+Title: Diagnosis of Statistical Models
 Version: 0.1.0
 Authors@R: person("Kiwamu", "Ishikura",
   email = "ishikura.kiwamu@gmail.com",
   role = c("aut", "cre"))
-Description: Diagnosis of statistical models such as lm, lme, lmer, etc.
+Maintainer: Kiwamu Ishikura <ishikura.kiwamu@gmail.com>
+Description: Diagnosis of statistical models such as `lm`, `lme`, `lmer`, etc.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.2.3
