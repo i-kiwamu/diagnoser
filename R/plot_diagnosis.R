@@ -76,7 +76,7 @@ autoplot.tbl_df_diag <-
 #' library(ggplot2)
 #' library(nlme)
 #' lm_od <- lm(distance ~ age + Sex, Orthodont)
-#' lme_od <- lme(distance ~ age + Sex, Orthodont)
+#' lme_od <- lme(distance ~ age + Sex, Orthodont, random = ~ age | Subject)
 #' diag_lm_od <- diagnose(lm_od)
 #' diag_lme_od <- diagnose(lme_od)
 #'
@@ -86,8 +86,17 @@ autoplot.tbl_df_diag <-
 #' # residual-fitted plot
 #' plot(diag_lme_od, type = "rf")
 #' 
+#' # residual plot of Subject in different Sex
+#' plot(diag_lme_od, type = "rf", aes(x = Subject)) + facet_wrap(~ Sex, scales = "free_x")
+#' 
 #' # QQ plot
 #' plot(diag_lme_od, type = "qq")
+#' 
+#' # QQ plot for random intercept
+#' plot(diag_lme_od, type = "qq", aes(sample = .ranef.intercept), level = "Subject")
+#' 
+#' # QQ plot for random slope
+#' plot(diag_lme_od, type = "qq", aes(sample = .ranef.age), level = "Subject")
 #' 
 #' # scale-location plot
 #' plot(diag_lme_od, type = "sl")
@@ -128,8 +137,9 @@ plot_measured_fitted <- function(object, mapping, ...) {
 
   model <- attr(object, "model")
   model_class <- class(model)
+  resp <- ""
   if (is.element(model_class, c("aov", "lm", "lme"))) {
-    resp <- attr(object, "model")$terms[[2]]
+    resp <- model$terms[[2]]
   } else if (model_class == "lmerMod") {
     resp <- attr(slot(model, "frame"), "terms")[[2]]
   }
@@ -154,16 +164,16 @@ plot_measured_fitted <- function(object, mapping, ...) {
 #' @param ... currently not to be used.
 #' @note To generate a scatter plot of fitted values vs studentized residuals.
 plot_resid_fitted <- function(object, mapping, ...) {
+  is_numeric_x <- FALSE
   if (!is.element("x", names(mapping))) {
     mapping <- update_aes(mapping, aes(x = .data$.fitted))
-    x_type <- "numeric"
+    is_numeric_x <- TRUE
   } else {
     x_label <- as_label(mapping$x)
     if (is.null(object[[x_label]])) {
       cli_abort(glue("{x_label} is not found in the model!"))
-    } else {
-      is_numeric_x <- is.numeric(object[[x_label]])
     }
+    is_numeric_x <- is.numeric(object[[x_label]])
   }
   if (is.element("y", names(mapping))) {
     mapping <- ignore_y_aes(mapping)
@@ -313,6 +323,7 @@ plot_marginal_model <- function(object, mapping, ...) {
     mapping <- ignore_y_aes(mapping)
   }
   model_class <- class(model)
+  resp <- ""
   if (is.element(model_class, c("aov", "lm", "lme"))) {
     resp <- model$terms[[2]]
   } else if (model_class == "lmerMod") {
