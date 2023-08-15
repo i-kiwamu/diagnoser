@@ -38,7 +38,7 @@ The argument \code{type} can be specified as below:
 library(ggplot2)
 library(nlme)
 lm_od <- lm(distance ~ age + Sex, Orthodont)
-lme_od <- lme(distance ~ age + Sex, Orthodont)
+lme_od <- lme(distance ~ age + Sex, Orthodont, random = ~ age | Subject)
 diag_lm_od <- diagnose(lm_od)
 diag_lme_od <- diagnose(lme_od)
 
@@ -48,8 +48,17 @@ plot(diag_lme_od)
 # residual-fitted plot
 plot(diag_lme_od, type = "rf")
 
+# residual plot of Subject in different Sex
+plot(diag_lme_od, type = "rf", aes(x = Subject)) + facet_wrap(~ Sex, scales = "free_x")
+
 # QQ plot
 plot(diag_lme_od, type = "qq")
+
+# QQ plot for random intercept
+plot(diag_lme_od, type = "qq", aes(sample = .ranef.intercept), level = "Subject")
+
+# QQ plot for random slope
+plot(diag_lme_od, type = "qq", aes(sample = .ranef.age), level = "Subject")
 
 # scale-location plot
 plot(diag_lme_od, type = "sl")
