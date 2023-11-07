@@ -6,7 +6,7 @@ Authors@R: person("Kiwamu", "Ishikura",
   email = "ishikura.kiwamu@gmail.com",
   role = c("aut", "cre"))
 Maintainer: Kiwamu Ishikura <ishikura.kiwamu@gmail.com>
-Description: Diagnosis of statistical models such as `lm`, `lme`, `lmer`, etc.
+Description: Diagnosis and visualization for linear statistical models.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.2.3

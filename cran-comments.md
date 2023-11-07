@@ -1,3 +1,14 @@
+## Resubmission
+
+This is a resubmission. In this version,
+
+* Possibly misspelled words in DESCRIPTION: lm (9:55) lme (9:61) lmer (9:68)
+  I changed Description. --> No NOTE.
+* Non-standard file/directory found at top level: 'revdep'
+  I deleted the directory 'revdep'. --> No NOTE.
+* Mismatches for apparent methods not registered: get_data_classes
+  I revised the function. --> No NOTE.
+
 ## Major comment
 
 This is the first registry to CRAN.
@@ -22,9 +33,7 @@ For Windows Server 2022 case,
 
 0 errors ✔ | 0 warnings ✔ | 3 notes ✖
 
-1 NOTE shows possibly misspelled word in DESCRIPTION. These words (lm, lme, lmer) are the function names so that they are not misspelled.
-
-The other NOTES (including Fedora and Ubuntu) resulted from the known issues of r-hub.
+All the NOTES (including Fedora and Ubuntu) resulted from the known issues of r-hub.
 
 1. Found the following files/directories:
   ''NULL''
