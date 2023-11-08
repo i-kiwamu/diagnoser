@@ -1,13 +1,6 @@
 ## Resubmission
 
-This is a resubmission. In this version,
-
-* Possibly misspelled words in DESCRIPTION: lm (9:55) lme (9:61) lmer (9:68)
-  I changed Description. --> No NOTE.
-* Non-standard file/directory found at top level: 'revdep'
-  I deleted the directory 'revdep'. --> No NOTE.
-* Mismatches for apparent methods not registered: get_data_classes
-  I revised the function. --> No NOTE.
+This is a resubmission after fixing errors.
 
 ## Major comment
 
@@ -21,28 +14,79 @@ x86_64-apple-darwin20 (macOS Ventura 13.5, Intel Core i5)
 
 R 4.3.1 compiled by Apple clang version 14.0.3 and GNU Fortran (GCC) 12.2.0
 
+No ERRORs, WARNINGs, and NOTEs.
+
 ### Remote
 
-- Windows Server 2022: https://builder.r-hub.io/status/diagnoser_0.1.0.tar.gz-c33e0a09c7a94abebf2beae124a1049d
-- Fedora Linux: https://builder.r-hub.io/status/diagnoser_0.1.0.tar.gz-36f13649034b45eab37057531cccafb4
-- Ubuntu Linux: https://builder.r-hub.io/status/diagnoser_0.1.0.tar.gz-7b0180f4451a406497041a80fc3c57d4
+- win-builder
+  * check_win_devel(): No ERRORs and WARNINGs
+    There are 3 NOTEs: these are not related to my package.
+    ```
+    * checking CRAN incoming feasibility ... NOTE
+      Maintainer: 'Kiwamu Ishikura <ishikura.kiwamu@gmail.com>'
+
+      New submission
+    ```
+    ```
+    * checking for non-standard things in the check directory ... NOTE
+    Found the following files/directories:
+      ''NULL''
+    ```
+    ```
+    * checking for detritus in the temp directory ... NOTE
+    Found the following files/directories:
+      'lastMiKTeXException'
+    ```
+  * check_win_release(): No ERRORs and WARNINGs
+    There is 1 NOTE: this is not related to my package.
+    ```
+    * checking CRAN incoming feasibility ... NOTE
+      Maintainer: 'Kiwamu Ishikura <ishikura.kiwamu@gmail.com>'
+
+      New submission
+    ```
+- check_rhub()
+  * Windows: No ERRORs and WARNINGs
+    There are 3 NOTEs: these are not related to my package.
+    ```
+    * checking CRAN incoming feasibility ... NOTE
+      Maintainer: 'Kiwamu Ishikura <ishikura.kiwamu@gmail.com>'
+
+      New submission
+    ```
+    ```
+    * checking for non-standard things in the check directory ... NOTE
+    Found the following files/directories:
+      ''NULL''
+    ```
+    ```
+    * checking for detritus in the temp directory ... NOTE
+    Found the following files/directories:
+      'lastMiKTeXException'
+    ```
+  * Ubuntu: Success
+  * Fedora: No ERRORs and WARNINGs
+    There are 3 NOTEs: these are not related to my package.
+    ```
+    * checking CRAN incoming feasibility ... NOTE
+      Maintainer: 'Kiwamu Ishikura <ishikura.kiwamu@gmail.com>'
+
+      New submission
+    ```
+    ```
+    * checking for non-standard things in the check directory ... NOTE
+    Found the following files/directories:
+      ''NULL''
+    ```
+    ```
+    * checking for detritus in the temp directory ... NOTE
+    Found the following files/directories:
+      'lastMiKTeXException'
+    ```
 
 ## R CMD check results
 
-For Windows Server 2022 case,
-
-0 errors ✔ | 0 warnings ✔ | 3 notes ✖
-
-All the NOTES (including Fedora and Ubuntu) resulted from the known issues of r-hub.
-
-1. Found the following files/directories:
-  ''NULL''
-  This is a known issue of r-hub (see https://github.com/r-hub/rhub/issues/560)
-1. Found the following files/directories:
-  'lastMiKTeXException'
-  This is a known issue of r-hub (see https://github.com/r-hub/rhub/issues/503)
-1. Skipping checking HTML validation: no command 'tidy' found
-  This is a known issue of r-hub (see https://github.com/r-hub/rhub/issues/556)
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
 
 ## revdepcheck results
 
